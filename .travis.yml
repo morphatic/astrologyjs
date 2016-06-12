@@ -5,4 +5,6 @@ before_install:
   - npm install -g typescript typings gulp-cli istanbul jasmine-core
   - typings install
 script:
-  - npm test && npm run cover
+  - npm test
+after_script:
+  - npm install coveralls@2 && cat ./coverage/lcov.info | coveralls
