@@ -5,4 +5,4 @@ before_install:
   - npm install -g typescript typings gulp-cli istanbul jasmine-core
   - typings install
 script:
-  - npm run cover
+  - npm test && npm run cover
