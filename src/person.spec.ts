@@ -53,7 +53,7 @@ describe("A Person or Event", () => {
         let person = await new Person("Morgan", "1974-02-17T23:30Z", {lat: 37.4381927, lon: -79.18932}),
             point = await person.getLatLon("1990 Buttonwood Ct, Harrisonburg, VA 22802");
         expect(point.lat).toBe(38.48500900000001);
-        expect(point.lng).toBe(-78.872845);
+        expect(point.lon).toBe(-78.872845);
     });
 
     it("can get a timezone from a lat/lon", async () => {
