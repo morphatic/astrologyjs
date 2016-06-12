@@ -3,6 +3,6 @@ logs
 npm-debug.log*
 node_modules
 typings
-spec
+spec/**/*.js
 coverage
 .DS_store
