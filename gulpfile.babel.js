@@ -7,7 +7,6 @@ import shell    from 'gulp-shell';
 import merge    from 'merge2';
 import concat   from 'gulp-concat';
 import uglify   from 'gulp-uglify';
-import notify   from 'gulp-notify';
 import jasmine  from 'gulp-jasmine';
 import istanbul from 'gulp-istanbul';
 
@@ -94,9 +93,7 @@ export function run_specs() {
         }))
         .pipe(istanbul.writeReports({
             print: "detail"
-        }))
-        .on('error', notify.onError({title: 'Error'}))
-        .pipe(notify({title: 'Success'}));
+        }));
 }
 
 const spec = gulp.series(clean_specs, build_specs, pre_spec, run_specs);
