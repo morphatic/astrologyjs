@@ -4,7 +4,8 @@
   "description": "A NodeJs package that will provide core functionality for including astrological charts in projects.",
   "main": "dist/astro.min.js",
   "scripts": {
-    "test": "gulp spec"
+    "test": "gulp spec",
+    "cover": "istanbul cover jasmine"
   },
   "repository": {
     "type": "git",
