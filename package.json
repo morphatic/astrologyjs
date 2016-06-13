@@ -1,11 +1,10 @@
 {
-  "name": "astro",
+  "name": "astrologyjs",
   "version": "1.0.0",
   "description": "A NodeJs package that will provide core functionality for including astrological charts in projects.",
-  "main": "dist/astro.min.js",
+  "main": "dist/js/astro.min.js",
   "scripts": {
-    "test": "gulp spec",
-    "cover": "istanbul cover jasmine"
+    "test": "gulp spec"
   },
   "repository": {
     "type": "git",

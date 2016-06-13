@@ -1,3 +1,4 @@
+/// <reference path="../../typings/index.d.ts" />
 /**
  * One of the planets, asteroids, the sun or moon
  */
@@ -60,7 +61,6 @@ export declare class Planet {
     isMajor(): boolean;
 }
 
-import { Planet } from "./planet";
 /**
  * Represents an aspect between two planets
  */
@@ -128,7 +128,6 @@ export interface Point {
     lon: number;
 }
 
-import { Point } from "./point";
 export declare class Person {
     name: string;
     date: string;
@@ -154,9 +153,6 @@ export declare class Person {
 }
 
 /// <reference path="../typings/index.d.ts" />
-import { Person } from "./person";
-import { Planet } from "./planet";
-import { Aspect } from "./aspect";
 export declare enum ChartType {
     Basic = 0,
     Transits = 1,
@@ -195,19 +191,23 @@ export declare class Chart {
     _aspects: Array<Aspect>;
     _ascendant: number;
     _houses: Array<number>;
-    private _signs;
+    _signs: {
+        name: string;
+        symbol: string;
+        v: number;
+    }[];
     constructor(name: string, p1: Person, cdata: ChartDataArray, p2?: Person, type?: ChartType);
-    private getPlanets(cdata);
+    getPlanets(cdata: ChartData): Array<Planet>;
     /**
      * Calculates the aspects between planets in the chart
      */
-    private calculateAspects();
+    calculateAspects(): void;
     /**
      * Calculates longitudes for a combined chart
      * @param {ChartData} p1 Planet data from person one
      * @param {ChartData} p2 Planet data from person two
      */
-    private calculateCombinedPlanets(cdata);
+    calculateCombinedPlanets(cdata: ChartDataArray): ChartData;
     /**
      * Finds the midpoint between two planets on the "short" side
      * @param  {number} l1 Longitude of planet one
@@ -226,16 +226,16 @@ export declare class Chart {
      * @param  {number} lon Longitude of the planet
      * @return {number}    X-coordinate of the planet (in pixels)
      */
-    private x;
+    x: (radius: number, lon: number) => number;
     /**
      * Returns the y-coordinate for a planet
      * @param  {number} radius Distance from the center of chart to the arc upon which planet is to be drawn
      * @param  {number} lon Longitude of the planet
      * @return {number}    Y-coordinate of the planet (in pixels)
      */
-    private y;
-    private sign;
-    private degMinSec;
+    y: (radius: number, lon: number) => number;
+    sign: (lon: number) => any;
+    degMinSec: (lon: number) => string;
     getD3Data(innerRadius: number, outerRadius: number): {
         name: string;
         innerPlanets: any[];
@@ -246,10 +246,6 @@ export declare class Chart {
     };
 }
 
-/// <reference path="../typings/index.d.ts" />
-import { Chart, ChartType, ChartData } from "./chart";
-import { Person } from "./person";
-import { Point } from "./point";
 export declare class ChartFactory {
     static create(name: string, p1: Person, p2?: Person, type?: ChartType): Promise<Chart>;
     /**
