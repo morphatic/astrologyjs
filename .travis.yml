@@ -7,4 +7,4 @@ before_install:
 script:
   - npm test
 after_script:
-  - npm install coveralls@2 && cat ./coverage/lcov.info | coveralls
+  - cat ./coverage/lcov-remapped.info.info | coveralls

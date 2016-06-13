@@ -5,6 +5,7 @@ import jsr      from 'jasmine-spec-reporter';
 import maps     from 'gulp-sourcemaps';
 import shell    from 'gulp-shell';
 import merge    from 'merge2';
+import remap    from 'remap-istanbul/lib/gulpRemapIstanbul';
 import concat   from 'gulp-concat';
 import uglify   from 'gulp-uglify';
 import jasmine  from 'gulp-jasmine';
@@ -72,15 +73,17 @@ export { clean_specs };
 
 export function build_specs() {
     return gulp.src(paths.src)
+        .pipe(maps.init())
         .pipe(ts({
             "target": "ES6",
             "module": "commonjs"
         }))
+        .pipe(maps.write('.'))
         .pipe(gulp.dest(paths.spec));
 }
 
 export function pre_spec() {
-    return gulp.src(["spec/**/*.js"])
+    return gulp.src(["spec/**/*.js","!spec/**/*.spec.js"])
         .pipe(istanbul())
         .pipe(istanbul.hookRequire());
 }
@@ -96,7 +99,18 @@ export function run_specs() {
         }));
 }
 
-const spec = gulp.series(clean_specs, build_specs, pre_spec, run_specs);
+export function remap_coverage() {
+    return gulp.src('coverage/coverage-final.json')
+        .pipe(remap({
+            reports: {
+                "html": "coverage/html-report",
+                "json": "coverage/coverage-remapped.json",
+                "lcovonly": "coverage/lcov-remapped.info"
+            }
+        }));
+}
+
+const spec = gulp.series(clean_specs, build_specs, pre_spec, run_specs, remap_coverage);
 export { spec };
 
 export function watch() {

@@ -103,7 +103,7 @@ export class ChartFactory {
                 lon: p.lon
             },
             json: true
-        }).then((cdata: ChartData) => {return cdata;});
+        }).then((cdata: ChartData) => cdata);
     }
 
     /**

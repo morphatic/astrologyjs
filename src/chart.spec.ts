@@ -22,6 +22,7 @@ describe("A Chart", () => {
         expect(c.getLonMidpoint(350,  10)).toBe(  0);
         expect(c.getLonMidpoint(350,  20)).toBe(  5);
         expect(c.getLonMidpoint(340,  10)).toBe(355);
+        expect(c.getLonMidpoint( 10,  10)).toBe( 10);
     });
 
     it("has a name", async () => {
