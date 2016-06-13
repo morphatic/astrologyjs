@@ -49,52 +49,80 @@ describe("A Chart Factory", () => {
             expect(data).toEqual(expected);
     });
 
-    it("instantiates a basic chart", async () => {
-        c = await ChartFactory.create("Morgan natal", morgan);
-        expect(c instanceof Chart).toBe(true);
-        expect(c._planets1.length).toBe(23);
-        expect(c._aspects).toBeDefined();
+    it("instantiates a basic chart", done => {
+        ChartFactory.create("Morgan natal", morgan)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c instanceof Chart).toBe(true);
+            expect(c._planets1.length).toBe(23);
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a chart with transits", async () => {
-        c = await ChartFactory.create("Morgan transits", morgan, null, ChartType.Transits);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2.length).toBe(23);
-        expect(c._aspects).toBeDefined();
+    it("instantiates a chart with transits", done => {
+        ChartFactory.create("Morgan transits", morgan, null, ChartType.Transits)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2.length).toBe(23);
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a synastry chart", async () => {
-        c = await ChartFactory.create("Morgan/Nicole synastry", morgan, nicole, ChartType.Synastry);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2.length).toBe(23);
-        expect(c._aspects).toBeDefined();
+    it("instantiates a synastry chart", done => {
+        ChartFactory.create("Morgan/Nicole synastry", morgan, nicole, ChartType.Synastry)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2.length).toBe(23);
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a combined chart", async () => {
-        c = await ChartFactory.create("Morgan/Nicole Combined", morgan, nicole, ChartType.Combined);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2).not.toBeDefined();
-        expect(c._aspects).toBeDefined();
+    it("instantiates a combined chart", done => {
+        ChartFactory.create("Morgan/Nicole Combined", morgan, nicole, ChartType.Combined)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2).not.toBeDefined();
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a Davison chart", async () => {
-        c = await ChartFactory.create("Morgan/Nicole Davison", morgan, nicole, ChartType.Davison);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2).not.toBeDefined();
-        expect(c._aspects).toBeDefined();
+    it("instantiates a Davison chart", done => {
+        ChartFactory.create("Morgan/Nicole Davison", morgan, nicole, ChartType.Davison).
+        then((cht: Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2).not.toBeDefined();
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a combined chart with transits", async () => {
-        c = await ChartFactory.create("Morgan/Nicole Combined", morgan, nicole, ChartType.CombinedTransits);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2.length).toBe(23);
-        expect(c._aspects).toBeDefined();
+    it("instantiates a combined chart with transits", done => {
+        ChartFactory.create("Morgan/Nicole Combined", morgan, nicole, ChartType.CombinedTransits)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2.length).toBe(23);
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 
-    it("instantiates a Davison chart with transits", async () => {
-        c = await ChartFactory.create("Morgan/Nicole Davison", morgan, nicole, ChartType.DavisonTransits);
-        expect(c._planets1.length).toBe(23);
-        expect(c._planets2.length).toBe(23);
-        expect(c._aspects).toBeDefined();
+    it("instantiates a Davison chart with transits", done => {
+        ChartFactory.create("Morgan/Nicole Davison", morgan, nicole, ChartType.DavisonTransits)
+        .then((cht:Chart) => {
+            c = cht;
+            expect(c._planets1.length).toBe(23);
+            expect(c._planets2.length).toBe(23);
+            expect(c._aspects).toBeDefined();
+            done();
+        });
     });
 });

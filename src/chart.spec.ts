@@ -48,12 +48,14 @@ describe("A Chart", () => {
         expect(planets[0] instanceof Planet).toBe(true);
     });
 
-    it("should allow transits to be refreshed/reset", async () => {
+    it("should allow transits to be refreshed/reset", done => {
         let old_aspects = c._aspects,
             nextweek = new Date();
         nextweek.setDate(nextweek.getDate() + 7);
-        await c.refreshTransits(nextweek.toISOString());
-        expect(c._aspects).not.toEqual(old_aspects);
+        c.refreshTransits(nextweek.toISOString()).then(() => {
+            expect(c._aspects).not.toEqual(old_aspects);
+            done();
+        });
     });
 
     it("should throw an error if you try to refresh 'transits' on synastry", () => {

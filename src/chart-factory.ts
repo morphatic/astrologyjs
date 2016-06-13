@@ -37,7 +37,10 @@ export class ChartFactory {
             case ChartType.DavisonTransits:
                 date = ChartFactory.getDatetimeMidpoint(p1.date, p2.date);
                 p = ChartFactory.getGeoMidpoint(p1.location, p2.location);
-                cdata.push(await ChartFactory.getChartData(date, p));
+                cdata = await Promise.all([
+                    ChartFactory.getChartData(date, p),
+                    ChartFactory.getChartData(new Date().toISOString(), p)
+                ]);
                 return new Chart(name, p1, cdata, null, type);
             default:
                 cdata.push(await ChartFactory.getChartData(p1.date, p1.location));
