@@ -78,7 +78,7 @@ export function build_specs() {
             "target": "ES6",
             "module": "commonjs"
         }))
-        .pipe(maps.write('.'))
+        .pipe(maps.write({includeContent: false, sourceRoot: "../src"}))
         .pipe(gulp.dest(paths.spec));
 }
 
@@ -102,10 +102,11 @@ export function run_specs() {
 export function remap_coverage() {
     return gulp.src('coverage/coverage-final.json')
         .pipe(remap({
+            basepath: "src",
             reports: {
                 "html": "coverage/html-report",
-                "json": "coverage/coverage-remapped.json",
-                "lcovonly": "coverage/lcov-remapped.info"
+                "json": "coverage/coverage-final.json",
+                "lcovonly": "coverage/lcov.info"
             }
         }));
 }
