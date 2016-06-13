@@ -36,7 +36,7 @@ export class Chart {
     _ascendant: number;
     _houses: Array<number>;
 
-    private _signs = [
+    _signs = [
         {name: "aries",       symbol: "q", v: 1},
         {name: "taurus",      symbol: "w", v: 1},
         {name: "gemini",      symbol: "e", v: 1},
@@ -79,7 +79,7 @@ export class Chart {
         this.calculateAspects();
     }
 
-    private getPlanets(cdata: ChartData): Array<Planet> {
+    getPlanets(cdata: ChartData): Array<Planet> {
         let planets: Array<Planet> = [];
         // cdata.planets.forEach(p => planets.push(new Planet(p.name, p.lon, p.lat, p.spd)));
         for (let p in cdata.planets) {
@@ -92,7 +92,7 @@ export class Chart {
     /**
      * Calculates the aspects between planets in the chart
      */
-    private calculateAspects(): void {
+    calculateAspects(): void {
         this._aspects = [];
         if (!this._planets2) {
             // calculate aspects within the _planets1 array
@@ -123,7 +123,7 @@ export class Chart {
      * @param {ChartData} p1 Planet data from person one
      * @param {ChartData} p2 Planet data from person two
      */
-    private calculateCombinedPlanets(cdata: ChartDataArray): ChartData {
+    calculateCombinedPlanets(cdata: ChartDataArray): ChartData {
         let cd: ChartData = {"planets":{"sun":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"moon":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"mercury":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"venus":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"mars":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"jupiter":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"saturn":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"uranus":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"neptune":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"pluto":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"north node":{"name":"north node","lon":null,"lat":null,"spd":null,"r":null},"south node":{"name":"south node","lon":null,"lat":null,"spd":null,"r":null},"chiron":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"pholus":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"ceres":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"pallas":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"juno":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"vesta":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"cupido":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"chariklo":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"chaos":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"eris":{"name":null,"lon":null,"lat":null,"spd":null,"r":null},"nessus":{"name":null,"lon":null,"lat":null,"spd":null,"r":null}},"houses":[null,null,null,null,null,null,null,null,null,null,null,null],"ascendant":null,"mc":null};
         for(let p in cdata[0].planets) {
             cd.planets[p].name = p;
@@ -189,7 +189,7 @@ export class Chart {
      * @param  {number} lon Longitude of the planet
      * @return {number}    X-coordinate of the planet (in pixels)
      */
-    private x = (radius: number, lon: number): number => {
+    x = (radius: number, lon: number): number => {
         return radius * Math.cos(ChartFactory.toRadians(180 + this._ascendant - lon));
     };
 
@@ -199,13 +199,13 @@ export class Chart {
      * @param  {number} lon Longitude of the planet
      * @return {number}    Y-coordinate of the planet (in pixels)
      */
-    private y = (radius: number, lon: number): number => {
+    y = (radius: number, lon: number): number => {
         return radius * Math.sin(ChartFactory.toRadians(180 + this._ascendant - lon));
     };
 
-    private sign = (lon: number): any => this._signs[Math.floor(lon/30)];
+    sign = (lon: number): any => this._signs[Math.floor(lon/30)];
 
-    private degMinSec = (lon: number) => {
+    degMinSec = (lon: number) => {
         let deg: number, min: number, sec: number, sign: any;
         sign = this.sign(lon);
         lon = lon % 30;

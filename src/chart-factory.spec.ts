@@ -34,6 +34,7 @@ describe("A Chart Factory", () => {
         let d1 = "1974-02-17T23:30:00.000Z",
             d2 = "1976-04-25T13:02:00.000Z";
         expect(ChartFactory.getDatetimeMidpoint(d1, d2)).toBe("1975-03-23T18:16:00.000Z");
+        expect(ChartFactory.getDatetimeMidpoint(d2, d1)).toBe("1975-03-23T18:16:00.000Z");
         expect(ChartFactory.getDatetimeMidpoint(d1, d1)).toBe(d1);
     });
 
