@@ -7,8 +7,8 @@ AstrologyJS is a NodeJs package that provides functionality for including astrol
 
 ## Installation
 
-To use AstrologyJS in a project, run the following in a terminal from the root of your project. This will save AstrologyJs as a dependency within your `package.json` file.
+To use AstrologyJS in a project, run the following in a terminal from the root of your project. This will save AstrologyJS as a dependency within your `package.json` file.
 
 ```
-npm install astro --save
+npm install astrologyjs --save
 ```
