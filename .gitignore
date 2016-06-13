@@ -7,3 +7,4 @@ spec/**/*.js
 spec/**/*.map
 coverage
 .DS_store
+.github_changelog_generator
