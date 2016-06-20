@@ -1,8 +1,9 @@
 {
   "name": "astrologyjs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A NodeJs package that will provide core functionality for including astrological charts in projects.",
-  "main": "dist/js/astro.min.js",
+  "main": "dist/js/astrologyjs.min.js",
+  "typings": "dist/js/astrologyjs.d.ts",
   "scripts": {
     "test": "gulp spec"
   },

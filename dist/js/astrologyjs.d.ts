@@ -1,4 +1,4 @@
-/// <reference path="../../typings/index.d.ts" />
+import {Promise} from "bluebird";
 /**
  * One of the planets, asteroids, the sun or moon
  */
@@ -152,7 +152,6 @@ export declare class Person {
     getLatLon(address: string): Promise<Point>;
 }
 
-/// <reference path="../typings/index.d.ts" />
 export declare enum ChartType {
     Basic = 0,
     Transits = 1,
@@ -220,30 +219,11 @@ export declare class Chart {
      * @param {string} date (Optional) Target datetime for transits in ISO 8601 format; defaults to now()
      */
     refreshTransits(date?: string): Promise<void>;
-    /**
-     * Returns the x-coordinate for a planet
-     * @param  {number} radius Distance from the center of chart to the arc upon which planet is to be drawn
-     * @param  {number} lon Longitude of the planet
-     * @return {number}    X-coordinate of the planet (in pixels)
-     */
-    x: (radius: number, lon: number) => number;
-    /**
-     * Returns the y-coordinate for a planet
-     * @param  {number} radius Distance from the center of chart to the arc upon which planet is to be drawn
-     * @param  {number} lon Longitude of the planet
-     * @return {number}    Y-coordinate of the planet (in pixels)
-     */
-    y: (radius: number, lon: number) => number;
-    sign: (lon: number) => any;
-    degMinSec: (lon: number) => string;
-    getD3Data(innerRadius: number, outerRadius: number): {
-        name: string;
-        innerPlanets: any[];
-        outerPlanets: any[];
-        aspects: any[];
-        ascendant: number;
-        houses: number[];
-    };
+    houses: Array<number>;
+    aspects: Array<Aspect>;
+    ascendant: number;
+    innerPlanets: Array<Planet>;
+    outerPlanets: Array<Planet>;
 }
 
 export declare class ChartFactory {

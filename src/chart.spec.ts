@@ -42,7 +42,7 @@ describe("A Chart", () => {
         expect(c.type).toBe(ChartType.Transits);
     });
 
-    it("can take chart data ane return an array of Planet objects", () => {
+    it("can take chart data and return an array of Planet objects", () => {
         let planets = c.getPlanets(cdata[0]);
         expect(planets.length).toBe(23);
         expect(planets[0] instanceof Planet).toBe(true);
@@ -66,14 +66,24 @@ describe("A Chart", () => {
         }
     });
 
-    it("outputs data in a d3-friendly way", () => {
-        let d3data = c.getD3Data(500, 520);
-        expect(d3data.innerPlanets).toBeDefined();
-        expect(d3data.outerPlanets).toBeDefined();
-        expect(d3data.houses).toBeDefined();
-        expect(d3data.ascendant).toBeDefined();
-        expect(d3data.aspects).toBeDefined();
-        expect(d3data.name).toBeDefined();
+    it("should allow access to the array of houses", () => {
+        expect(c.houses.length).toBe(12);
+    });
+
+    it("should allow access to the aspects array", () => {
+        expect(c.aspects.length).toBeGreaterThan(0);
+    });
+
+    it("should allow access to the ascendant", () => {
+        expect(c.ascendant).toBeTruthy();
+    });
+
+    it("should allow access to the array of inner planets", () => {
+        expect(c.innerPlanets.length).toBe(23);
+    });
+
+    it("should allow access to the array of outer planets", () => {
+        expect(c.outerPlanets.length).toBe(23);
     });
 
 });

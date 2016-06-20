@@ -30,10 +30,10 @@ export function build_dist_js() {
         .pipe(ts(proj));
 
     let js = project.js
-        .pipe(concat('astro.min.js'));
+        .pipe(concat('astrologyjs.min.js'));
 
     let dts = project.dts
-        .pipe(concat('astro.d.ts'));
+        .pipe(concat('astrologyjs.d.ts'));
 
     return merge([
         js.pipe(maps.write('.')).pipe(gulp.dest(paths.dist_js)),

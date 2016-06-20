@@ -183,101 +183,10 @@ export class Chart {
         this.calculateAspects();
     }
 
-    /**
-     * Returns the x-coordinate for a planet
-     * @param  {number} radius Distance from the center of chart to the arc upon which planet is to be drawn
-     * @param  {number} lon Longitude of the planet
-     * @return {number}    X-coordinate of the planet (in pixels)
-     */
-    x = (radius: number, lon: number): number => {
-        return radius * Math.cos(ChartFactory.toRadians(180 + this._ascendant - lon));
-    };
+    get houses():  Array<number> { return this._houses;  }
+    get aspects(): Array<Aspect> { return this._aspects; }
+    get ascendant(): number { return this._ascendant; }
+    get innerPlanets(): Array<Planet> { return this._planets2 ? this._planets1 : []; }
+    get outerPlanets(): Array<Planet> { return this._planets2 ? this._planets2 : this._planets1; }
 
-    /**
-     * Returns the y-coordinate for a planet
-     * @param  {number} radius Distance from the center of chart to the arc upon which planet is to be drawn
-     * @param  {number} lon Longitude of the planet
-     * @return {number}    Y-coordinate of the planet (in pixels)
-     */
-    y = (radius: number, lon: number): number => {
-        return radius * Math.sin(ChartFactory.toRadians(180 + this._ascendant - lon));
-    };
-
-    sign = (lon: number): any => this._signs[Math.floor(lon/30)];
-
-    degMinSec = (lon: number) => {
-        let deg: number, min: number, sec: number, sign: any;
-        sign = this.sign(lon);
-        lon = lon % 30;
-        deg = Math.floor(lon);
-        min = Math.floor((lon - deg) * 60);
-        sec = Math.round((((lon - deg ) * 60) - min) * 60);
-        return `${deg}°${min}'${sec}" ${sign}`;
-    };
-
-    getD3Data(innerRadius: number, outerRadius: number) {
-        let radius  = this._planets2 ? innerRadius : outerRadius,
-            inOrOut = this._planets2 ? "innerPlanets" : "outerPlanets",
-            data: {
-                name: string, 
-                innerPlanets: Array<any>, 
-                outerPlanets: Array<any>, 
-                aspects: Array<any>, 
-                ascendant: number, 
-                houses: Array<number>
-            } = {
-                "name": this.name,
-                "innerPlanets": [],
-                "outerPlanets": [],
-                "aspects": [],
-                "ascendant": this._ascendant,
-                "houses": this._houses 
-            };
-
-        for(let p of this._planets1) {
-            data[inOrOut].push({
-                name: p.name,
-                symbol: p.symbol,
-                sign: this.degMinSec(p.longitude),
-                x: this.x(radius, p.longitude),
-                y: this.y(radius, p.latitude),
-                r: p.speed < 0,
-                fixed: false,
-                weight: 1,
-                radius: 15
-            });
-        }
-
-        if (this._planets2) {
-            for(let p of this._planets2) {
-                data.outerPlanets.push({
-                    name: p.name,
-                    symbol: p.symbol,
-                    sign: this.degMinSec(p.longitude),
-                    x: this.x(outerRadius, p.longitude),
-                    y: this.y(outerRadius, p.latitude),
-                    r: p.speed < 0,
-                    isMajor: p.isMajor(),
-                    fixed: false,
-                    weight: 1,
-                    radius: 15
-                });
-            }
-        }
-
-        for (let a of this._aspects) {
-            data.aspects.push({
-                type: a.type,
-                symbol: a.symbol,
-                orb: a.orb,
-                isApplying: a.isApplying(),
-                isMajor: a.isMajor,
-                x1: this.x(innerRadius, a.p1.longitude),
-                x2: this.x(innerRadius, a.p2.longitude),
-                y1: this.y(innerRadius, a.p1.longitude),
-                y2: this.y(innerRadius, a.p2.longitude),
-            });
-        }
-        return data;
-    }
 }
