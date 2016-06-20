@@ -1,6 +1,6 @@
 # AstrologyJS
 
-[![Build Status](https://travis-ci.org/morphatic/astro.svg?branch=master)](https://travis-ci.org/morphatic/astro)
+[![Build Status](https://travis-ci.org/morphatic/astrologyjs.svg?branch=master)](https://travis-ci.org/morphatic/astrologyjs)
 [![Coverage Status](https://coveralls.io/repos/github/morphatic/astro/badge.svg?branch=master)](https://coveralls.io/github/morphatic/astro?branch=master)
 
 AstrologyJS is a NodeJs package that provides functionality for including astrological charts in projects.
