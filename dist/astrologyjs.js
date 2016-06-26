@@ -1,48 +1,41 @@
-"use strict";
-/**
- * One of the planets, asteroids, the sun or moon
- */
-class Planet {
-    /**
-     * Instantiate a new planet object.
-     * @param {string} name The planet's name
-     * @param {number} lon  The planet's longitude
-     * @param {number} lat  The planet's latitude
-     * @param {number} spd  The planet's speed relative to earth
-     */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments)).next());
+    });
+};
+let rp = require("request-promise");
+export class Planet {
     constructor(name, lon, lat, spd) {
-        /**
-         * Dictionary of symbols for the planets for
-         * use with the Kairon Semiserif font
-         * @type {Object}
-         */
         this.symbols = {
-            "sun": 'a',
-            "moon": 's',
-            "mercury": 'd',
-            "venus": 'f',
-            "earth": 'g',
-            "mars": 'h',
-            "jupiter": 'j',
-            "saturn": 'k',
-            "uranus": 'ö',
-            "neptune": 'ä',
-            "pluto": '#',
-            "south node": '?',
-            "north node": 'ß',
-            "ceres": 'A',
-            "pallas": 'S',
-            "juno": 'D',
-            "vesta": 'F',
-            "lilith": 'ç',
-            "cupido": 'L',
-            "chiron": 'l',
-            "nessus": 'ò',
-            "pholus": 'ñ',
-            "chariklo": 'î',
-            "eris": 'È',
-            "chaos": 'Ê',
-            "fortuna": '%'
+            "sun": "a",
+            "moon": "s",
+            "mercury": "d",
+            "venus": "f",
+            "earth": "g",
+            "mars": "h",
+            "jupiter": "j",
+            "saturn": "k",
+            "uranus": "ö",
+            "neptune": "ä",
+            "pluto": "#",
+            "south node": "?",
+            "north node": "ß",
+            "ceres": "A",
+            "pallas": "S",
+            "juno": "D",
+            "vesta": "F",
+            "lilith": "ç",
+            "cupido": "L",
+            "chiron": "l",
+            "nessus": "ò",
+            "pholus": "ñ",
+            "chariklo": "î",
+            "eris": "È",
+            "chaos": "Ê",
+            "fortuna": "%"
         };
         this.name = name;
         this.longitude = lon;
@@ -50,46 +43,85 @@ class Planet {
         this.speed = spd;
         this.symbol = this.symbols[name.toLowerCase()];
     }
-    /**
-     * A planet is retrograde when it's speed relative
-     * to earth is less than zero
-     * @return {boolean} Whether or not the planet is retrograde
-     */
     isRetrograde() {
         return this.speed < 0;
     }
-    /**
-     * Is this one of the major planets typically included in a chart?
-     * @return {boolean} Returns true if it is a major planet
-     */
     isMajor() {
         return ["sun", "moon", "mercury", "venus", "mars", "jupiter", "saturn",
             "uranus", "neptune", "pluto", "north node", "south node"]
             .indexOf(this.name.toLowerCase()) > -1;
     }
 }
-exports.Planet = Planet;
-
-"use strict";
-class AspectType {
+export class Person {
+    constructor(name, date, location) {
+        this.name = name;
+        this.date = date;
+        this.location = location;
+    }
+    static create(name, date, location) {
+        return __awaiter(this, void 0, Promise, function* () {
+            let dt, loc;
+            if (!name) {
+                throw new Error("No name was submitted for the person/event");
+            }
+            if (typeof date === "string") {
+                if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}\.\d{3})?Z/.test(date)) {
+                    throw new TypeError("Date not formatted according to ISO 8601 (YYYY-MM-DDTHH:mmZ)");
+                }
+                dt = date;
+            }
+            else if (date instanceof Date) {
+                dt = date.toISOString();
+            }
+            else {
+                dt = new Date().toISOString();
+            }
+            if (typeof location === "string") {
+                loc = yield this.getLatLon(location);
+            }
+            else {
+                if (location.lat < -90 || location.lat > 90) {
+                    throw new RangeError("Latitude must be between -90 and 90");
+                }
+                if (location.lng < -180 || location.lng > 180) {
+                    throw new RangeError("Longitude must be between -180 and 180");
+                }
+                loc = location;
+            }
+            return new Person(name, dt, loc);
+        });
+    }
+    static getTimezone(p) {
+        return __awaiter(this, void 0, Promise, function* () {
+            return yield rp({
+                uri: "https://maps.googleapis.com/maps/api/timezone/json",
+                qs: {
+                    key: this._key,
+                    location: `${p.lat},${p.lng}`,
+                    timestamp: Math.floor(Date.now() / 1000)
+                },
+                json: true
+            }).then((tzinfo) => tzinfo.timeZoneId, (error) => { throw Error(error.errorMessage); });
+        });
+    }
+    static getLatLon(address) {
+        return __awaiter(this, void 0, Promise, function* () {
+            return yield rp({
+                uri: "https://maps.googleapis.com/maps/api/geocode/json",
+                qs: {
+                    key: this._key,
+                    address: address
+                },
+                json: true
+            }).then((latlng) => latlng.results[0].geometry.location, (error) => { throw Error(error.error_message); });
+        });
+    }
 }
-/**
- * Represents an aspect between two planets
- */
-class Aspect {
-    /**
-     * Creates a new Aspect or throws an error if no aspect exists
-     * between the planets
-     * @param {Planet} public p1 First planet in the relationship
-     * @param {Planet} public p2 Second planet in the relationship
-     */
+Person._key = "AIzaSyAXnIdQxap1WQuzG0XxHfYlCA5O9GQyvuY";
+export class Aspect {
     constructor(p1, p2) {
         this.p1 = p1;
         this.p2 = p2;
-        /**
-         * Catalog of all of the aspect types available in our system
-         * @type {AspectTypeArray}
-         */
         this._types = {
             "conjunct": { major: true, angle: 0, orb: 6, symbol: "<" },
             "semisextile": { major: false, angle: 30, orb: 3, symbol: "y" },
@@ -113,29 +145,22 @@ class Aspect {
             "tao": { major: false, angle: 165, orb: 1.5, symbol: "—" },
             "opposition": { major: true, angle: 180, orb: 6, symbol: "m" }
         };
-        // get key properties of the planets
-        let l1 = p1.longitude, l2 = p2.longitude, ng = Math.abs(l1 - l2), r1 = p1.isRetrograde(), r2 = p2.isRetrograde(), s1 = Math.abs(p1.speed), s2 = Math.abs(p2.speed), ct = false; // corrected?
-        // correct for cases where the angle > 180 + the orb of opposition
+        let l1 = p1.longitude, l2 = p2.longitude, ng = Math.abs(l1 - l2), r1 = p1.isRetrograde(), r2 = p2.isRetrograde(), s1 = Math.abs(p1.speed), s2 = Math.abs(p2.speed), ct = false;
         if (ng > 180 + this._types["opposition"].orb) {
             ng = l1 > l2 ? 360 - l1 + l2 : 360 - l2 + l1;
             ct = true;
         }
-        // determine the aspect type
         for (let type in this._types) {
             let t = this._types[type];
             if (ng >= t.angle - t.orb && ng <= t.angle + t.orb) {
                 this._type = type;
             }
         }
-        // bail out if there is no in-orb aspect between these two planets
         if (typeof this._type === "undefined") {
             throw new Error("There is no aspect between these two planets.");
         }
-        // determine the orb
         this._orb = Number((ng % 1).toFixed(6));
-        // determine if it is applying or not; use speed magnitude (i.e. absolute value)
         let orb = ng - this._types[this._type].angle;
-        // planets are in aspect across 0° Aries
         if ((((orb < 0 && !ct && l2 > l1) || (orb > 0 && !ct && l1 > l2) ||
             (orb < 0 && ct && l1 > l2) || (orb > 0 && ct && l2 > l1)) &&
             ((!r1 && !r2 && s2 > s1) || (r1 && r2 && s1 > s2) || (r1 && !r2)) ||
@@ -148,131 +173,13 @@ class Aspect {
             this._applying = false;
         }
     }
-    /**
-     * Get the type assigned to this aspect
-     * @return {string} One of the aspect type names
-     */
     get type() { return this._type; }
-    /**
-     * Get the number of degrees away from being in perfect aspect
-     * @return {number} The number of degrees (absolute value)
-     */
     get orb() { return this._orb; }
-    /**
-     * Get the character that will produce the correct symbol for
-     * this aspect in the Kairon Semiserif font
-     * @return {string} A character representing a symbol
-     */
     get symbol() { return this._types[this._type].symbol; }
-    /**
-     * Is the aspect applying or separating?
-     * @return {boolean} True if the aspect is applying
-     */
     isApplying() { return this._applying; }
-    /**
-     * Is this a "major" aspect? i.e. one of those you usually
-     * hear about in astrological forecasts
-     * @return {boolean} True if this is a "major" aspect
-     */
     isMajor() { return this._types[this._type].major; }
 }
-exports.Aspect = Aspect;
-
-"use strict";
-
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-};
-const rp = require("request-promise");
-class Person {
-    /**
-     * Creates a Person (or Event) object
-     * @param {string} public name Name of the person or event
-     * @param {string} public date UTC date in ISO 8601 format, i.e. YYYY-MM-DDTHH:mmZ (caller must convert to UTC)
-     * @param {Point|string} location An address or lat/lon of the event or person's birthplace
-     */
-    constructor(name, date, location) {
-        this.name = name;
-        this.date = date;
-        this._key = "AIzaSyAXnIdQxap1WQuzG0XxHfYlCA5O9GQyvuY";
-        // make sure a name was submitted
-        if (!name) {
-            throw new Error("No name was submitted for the person/event");
-        }
-        // make sure valid date was submitted
-        if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}\.\d{3})?Z/.test(date)) {
-            throw new TypeError("Date not formatted according to ISO 8601 (YYYY-MM-DDTHH:mmZ)");
-        }
-        if (typeof location === "string") {
-            this.getLatLon(location).then((p) => { this.location = p; });
-        }
-        else {
-            // make sure latitude was valid
-            if (location.lat < -90 || location.lat > 90) {
-                throw new RangeError("Latitude must be between -90 and 90");
-            }
-            // make sure longitude was valid
-            if (location.lon < -180 || location.lon > 180) {
-                throw new RangeError("Longitude must be between -180 and 180");
-            }
-            this.location = location;
-        }
-    }
-    /**
-     * Gets a timezone given a latitude and longitude
-     * @param {Point} p  Contains the latitude and longitude in decimal format
-     */
-    getTimezone(p) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield rp({
-                uri: "https://maps.googleapis.com/maps/api/timezone/json",
-                qs: {
-                    key: this._key,
-                    location: `${p.lat},${p.lon}`,
-                    timestamp: Math.floor(Date.now() / 1000)
-                },
-                json: true
-            }).then(tzinfo => tzinfo.timeZoneId);
-        });
-    }
-    // TODO: error checking and other functionality from old project?
-    /**
-     * Get a latitude and longitude given an address
-     * @param {string} address The address of the desired lat/lon
-     */
-    getLatLon(address) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield rp({
-                uri: "https://maps.googleapis.com/maps/api/geocode/json",
-                qs: {
-                    key: this._key,
-                    address: address
-                },
-                json: true
-            }).then((latlon) => latlon.results[0].geometry.location);
-        });
-    }
-}
-exports.Person = Person;
-
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-};
-const planet_1 = require("./planet");
-const aspect_1 = require("./aspect");
-const chart_factory_1 = require("./chart-factory");
+export var ChartType;
 (function (ChartType) {
     ChartType[ChartType["Basic"] = 0] = "Basic";
     ChartType[ChartType["Transits"] = 1] = "Transits";
@@ -281,10 +188,9 @@ const chart_factory_1 = require("./chart-factory");
     ChartType[ChartType["Davison"] = 4] = "Davison";
     ChartType[ChartType["CombinedTransits"] = 5] = "CombinedTransits";
     ChartType[ChartType["DavisonTransits"] = 6] = "DavisonTransits";
-})(exports.ChartType || (exports.ChartType = {}));
-var ChartType = exports.ChartType;
+})(ChartType || (ChartType = {}));
 ;
-class Chart {
+export class Chart {
     constructor(name, p1, cdata, p2, type = ChartType.Basic) {
         this.name = name;
         this.p1 = p1;
@@ -332,25 +238,20 @@ class Chart {
     }
     getPlanets(cdata) {
         let planets = [];
-        // cdata.planets.forEach(p => planets.push(new Planet(p.name, p.lon, p.lat, p.spd)));
         for (let p in cdata.planets) {
             let pd = cdata.planets[p];
-            planets.push(new planet_1.Planet(pd.name, pd.lon, pd.lat, pd.spd));
+            planets.push(new Planet(pd.name, pd.lon, pd.lat, pd.spd));
         }
         return planets;
     }
-    /**
-     * Calculates the aspects between planets in the chart
-     */
     calculateAspects() {
         this._aspects = [];
         if (!this._planets2) {
-            // calculate aspects within the _planets1 array
             for (let i in this._planets1) {
                 for (let j in this._planets1) {
                     if (i !== j && j > i) {
                         try {
-                            this._aspects.push(new aspect_1.Aspect(this._planets1[i], this._planets1[j]));
+                            this._aspects.push(new Aspect(this._planets1[i], this._planets1[j]));
                         }
                         catch (err) { }
                     }
@@ -358,22 +259,16 @@ class Chart {
             }
         }
         else {
-            // calculate aspects between the _planets1 and _planets2 arrays
             for (let i in this._planets1) {
                 for (let j in this._planets2) {
                     try {
-                        this._aspects.push(new aspect_1.Aspect(this._planets1[i], this._planets2[j]));
+                        this._aspects.push(new Aspect(this._planets1[i], this._planets2[j]));
                     }
                     catch (err) { }
                 }
             }
         }
     }
-    /**
-     * Calculates longitudes for a combined chart
-     * @param {ChartData} p1 Planet data from person one
-     * @param {ChartData} p2 Planet data from person two
-     */
     calculateCombinedPlanets(cdata) {
         let cd = { "planets": { "sun": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "moon": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "mercury": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "venus": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "mars": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "jupiter": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "saturn": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "uranus": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "neptune": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "pluto": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "north node": { "name": "north node", "lon": null, "lat": null, "spd": null, "r": null }, "south node": { "name": "south node", "lon": null, "lat": null, "spd": null, "r": null }, "chiron": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "pholus": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "ceres": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "pallas": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "juno": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "vesta": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "cupido": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "chariklo": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "chaos": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "eris": { "name": null, "lon": null, "lat": null, "spd": null, "r": null }, "nessus": { "name": null, "lon": null, "lat": null, "spd": null, "r": null } }, "houses": [null, null, null, null, null, null, null, null, null, null, null, null], "ascendant": null, "mc": null };
         for (let p in cdata[0].planets) {
@@ -389,19 +284,11 @@ class Chart {
         cd.mc = this.getLonMidpoint(cdata[0].mc, cdata[1].mc);
         return cd;
     }
-    /**
-     * Finds the midpoint between two planets on the "short" side
-     * @param  {number} l1 Longitude of planet one
-     * @param  {number} l2 Longitude of planet two
-     * @return {number}    Longitude of the midpoint
-     */
     getLonMidpoint(l1, l2) {
         let mp, high, low;
-        // if they are exactly the same, return either one
         if (l1 === l2) {
             return l1;
         }
-        // figure out which has a higher/lower longitude
         high = l1 > l2 ? l1 : l2;
         low = l1 < l2 ? l1 : l2;
         if (high - low <= 180) {
@@ -412,19 +299,15 @@ class Chart {
         }
         return mp;
     }
-    /**
-     * Refresh or set the transits to a new time
-     * @param {string} date (Optional) Target datetime for transits in ISO 8601 format; defaults to now()
-     */
-    refreshTransits(date) {
+    refreshTransits(date = null) {
         return __awaiter(this, void 0, void 0, function* () {
             if (ChartType.Synastry === this.type) {
                 throw new Error("You cannot refresh transits on a synastry chart");
             }
-            if (!date) {
+            if (null === date) {
                 date = new Date().toISOString();
             }
-            let cdata = yield chart_factory_1.ChartFactory.getChartData(this.p1.date, this.p1.location);
+            let cdata = yield ChartFactory.getChartData(date, this.p1.location);
             this._planets2 = this.getPlanets(cdata);
             this.calculateAspects();
         });
@@ -435,124 +318,95 @@ class Chart {
     get innerPlanets() { return this._planets2 ? this._planets1 : []; }
     get outerPlanets() { return this._planets2 ? this._planets2 : this._planets1; }
 }
-exports.Chart = Chart;
-
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-};
-/// <reference path="../typings/index.d.ts" />
-const rp = require("request-promise");
-const chart_1 = require("./chart");
-class ChartFactory {
-    static create(name, p1, p2, type = chart_1.ChartType.Basic) {
+export class ChartFactory {
+    static create(name, p1, p2 = null, type = ChartType.Basic) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (null === name || "undefined" === typeof name || 0 === name.length) {
+                throw Error("Chart must have a name (ChartFactory)");
+            }
+            if (null === p1 || typeof p1 === "undefined") {
+                throw Error("Person or Event cannot be null or undefined (ChartFactory)");
+            }
+            switch (type) {
+                case ChartType.Synastry:
+                case ChartType.Combined:
+                case ChartType.CombinedTransits:
+                case ChartType.Davison:
+                    if (null === p2) {
+                        throw Error("2nd Person or Event cannot be null for this chart type (ChartFactory)");
+                    }
+            }
             let cdata = [], date, p;
             switch (type) {
-                case chart_1.ChartType.Transits:
+                case ChartType.Transits:
                     cdata = yield Promise.all([
                         ChartFactory.getChartData(p1.date, p1.location),
                         ChartFactory.getChartData(new Date().toISOString(), p1.location)
                     ]);
-                    return new chart_1.Chart(name, p1, cdata, null, type);
-                case chart_1.ChartType.Synastry:
-                case chart_1.ChartType.Combined:
+                    return new Chart(name, p1, cdata, null, type);
+                case ChartType.Synastry:
+                case ChartType.Combined:
                     cdata = yield Promise.all([
                         ChartFactory.getChartData(p1.date, p1.location),
                         ChartFactory.getChartData(p2.date, p2.location)
                     ]);
-                    return new chart_1.Chart(name, p1, cdata, null, type);
-                case chart_1.ChartType.CombinedTransits:
+                    return new Chart(name, p1, cdata, null, type);
+                case ChartType.CombinedTransits:
                     cdata = yield Promise.all([
                         ChartFactory.getChartData(p1.date, p1.location),
                         ChartFactory.getChartData(p2.date, p2.location),
                         ChartFactory.getChartData(new Date().toISOString(), p1.location)
                     ]);
-                    return new chart_1.Chart(name, p1, cdata, null, type);
-                case chart_1.ChartType.Davison:
+                    return new Chart(name, p1, cdata, null, type);
+                case ChartType.Davison:
                     date = ChartFactory.getDatetimeMidpoint(p1.date, p2.date);
                     p = ChartFactory.getGeoMidpoint(p1.location, p2.location);
                     cdata.push(yield ChartFactory.getChartData(date, p));
-                    return new chart_1.Chart(name, p1, cdata);
-                case chart_1.ChartType.DavisonTransits:
+                    return new Chart(name, p1, cdata);
+                case ChartType.DavisonTransits:
                     date = ChartFactory.getDatetimeMidpoint(p1.date, p2.date);
                     p = ChartFactory.getGeoMidpoint(p1.location, p2.location);
                     cdata = yield Promise.all([
                         ChartFactory.getChartData(date, p),
                         ChartFactory.getChartData(new Date().toISOString(), p)
                     ]);
-                    return new chart_1.Chart(name, p1, cdata, null, type);
+                    return new Chart(name, p1, cdata, null, type);
                 default:
                     cdata.push(yield ChartFactory.getChartData(p1.date, p1.location));
-                    return new chart_1.Chart(name, p1, cdata);
+                    return new Chart(name, p1, cdata);
             }
         });
     }
-    /**
-     * Calculates the lat/lon of the geographic midpoint between two lat/lon pairs
-     * @param {Point} p1 Latitude/longitude of first location
-     * @param {Point} p2 Latitude/longitude of second location
-     * @return {Point} The latitude/longitude of the geographic midpoint
-     */
     static getGeoMidpoint(p1, p2) {
-        let lat1 = ChartFactory.toRadians(p1.lat), lon1 = ChartFactory.toRadians(p1.lon), lat2 = ChartFactory.toRadians(p2.lat), lon2 = ChartFactory.toRadians(p2.lon), bx = Math.cos(lat2) * Math.cos(lon2 - lon1), by = Math.cos(lat2) * Math.sin(lon2 - lon1), lon3 = lon1 + Math.atan2(by, Math.cos(lat1) + bx), lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt(Math.pow(Math.cos(lat1) + bx, 2) + Math.pow(by, 2)));
+        let lat1 = ChartFactory.toRadians(p1.lat), lng1 = ChartFactory.toRadians(p1.lng), lat2 = ChartFactory.toRadians(p2.lat), lng2 = ChartFactory.toRadians(p2.lng), bx = Math.cos(lat2) * Math.cos(lng2 - lng1), by = Math.cos(lat2) * Math.sin(lng2 - lng1), lng3 = lng1 + Math.atan2(by, Math.cos(lat1) + bx), lat3 = Math.atan2(Math.sin(lat1) + Math.sin(lat2), Math.sqrt(Math.pow(Math.cos(lat1) + bx, 2) + Math.pow(by, 2)));
         return {
             lat: ChartFactory.toDegrees(lat3),
-            lon: ChartFactory.toDegrees(lon3)
+            lng: ChartFactory.toDegrees(lng3)
         };
     }
-    /**
-     * Finds the exact midpoint between two dates
-     * @param  {string} date1 The first date
-     * @param  {string} date2 The second date
-     * @return {string}       The midpoint date as an ISO 8601 string
-     */
     static getDatetimeMidpoint(date1, date2) {
         let d1 = new Date(date1).getTime(), d2 = new Date(date2).getTime(), ts;
-        // if two dates are the same, midpoint is just that date
         if (d1 === d2) {
             return date1;
         }
         ts = d1 < d2 ? d1 + ((d2 - d1) / 2) : d2 + ((d1 - d2) / 2);
         return new Date(ts).toISOString();
     }
-    /**
-     * Gets chart data from the online ephemeris
-     * @param {string} date A UTC datetime string in ISO 8601 format
-     * @param {number} lat  The latitude for the chart
-     * @param {number} lon  The longitude for the chart
-     */
     static getChartData(date, p) {
-        return __awaiter(this, void 0, void 0, function* () {
+        return __awaiter(this, void 0, Promise, function* () {
             return yield rp({
                 uri: "http://www.morphemeris.com/ephemeris.php",
                 qs: {
                     date: date,
                     lat: p.lat,
-                    lon: p.lon
+                    lon: p.lng
                 },
                 json: true
             }).then((cdata) => cdata);
         });
     }
 }
-/**
- * Converts decimal degrees to radians
- * @param  {number} degrees Decimal representation of degrees to be converted
- * @return {number}         Returns radians
- */
 ChartFactory.toRadians = (degrees) => degrees * Math.PI / 180;
-/**
- * Converts radians to decimal degrees
- * @param  {number} radians Radians to be converted
- * @return {number}         Returns decimal degrees
- */
 ChartFactory.toDegrees = (radians) => radians * 180 / Math.PI;
-exports.ChartFactory = ChartFactory;
 
-//# sourceMappingURL=astrologyjs.min.js.map
+//# sourceMappingURL=astrologyjs.js.map

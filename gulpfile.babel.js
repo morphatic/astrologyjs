@@ -11,14 +11,13 @@ import uglify   from 'gulp-uglify';
 import jasmine  from 'gulp-jasmine';
 import istanbul from 'gulp-istanbul';
 
-var proj = ts.createProject('tsconfig.json');
-
 const paths = {
-    src:     'src/**/*.ts',
+    src:     'src/astrologyjs.ts',
     spec:    'spec',
     specs:   'spec/**/*.spec.js',
     dist_js: 'dist/js',
-    dist_ts: 'dist/ts'  
+    dist_ts: 'dist/ts',
+    dist:    'dist'
 };
 
 const clean = () => del(['dist']);
@@ -38,41 +37,42 @@ export function build_dist_js() {
     return merge([
         js.pipe(maps.write('.')).pipe(gulp.dest(paths.dist_js)),
         dts.pipe(gulp.dest(paths.dist_js))
-    ]);        
+    ]);
 }
 
-export function build_dist_ts() {
-    let project = proj.src()
+export function build_dist() {
+    let proj = gulp.src(["src/astrologyjs.ts"])
+        .pipe(maps.init())
         .pipe(ts({
             "target": "es6",
-            "module": "commonjs",
             "declaration": true,
             "noImplicitAny": true,
             "suppressImplicitAnyIndexErrors": true,
             "noImplicitReturns": true,
-            "emitDecoratorMetadata": true,
-            "experimentalDecorators": true,
-            "sortOutput": true
+            // "strictNullChecks": true,
+            "removeComments": true,
+            "sourceMap": true
         }));
-    let tsf = gulp.src("src/").pipe(concat('astro.ts'));
 
-    let dts = project.dts
-        .pipe(concat('astro.d.ts'));
+    let js = proj.js;
+
+    let dts = proj.dts
+        .pipe(concat('astrologyjs.d.ts'));
 
     return merge([
-        tsf.pipe(gulp.dest(paths.dist_ts)),
-        dts.pipe(gulp.dest(paths.dist_ts))
-    ]);        
+        js.pipe(maps.write('.')).pipe(gulp.dest(paths.dist)),
+        dts.pipe(gulp.dest(paths.dist))
+    ]);
 }
 
-const build = gulp.series(clean, build_dist_js);
+const build = gulp.series(clean, build_dist);
 export { build };
 
 const clean_specs = () => del(["spec/*.js"]);
 export { clean_specs };
 
 export function build_specs() {
-    return gulp.src(paths.src)
+    return gulp.src(["src/**/*.spec.ts", "src/astrologyjs.ts"])
         .pipe(maps.init())
         .pipe(ts({
             "target": "ES6",

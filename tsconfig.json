@@ -1,20 +1,20 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "module": "commonjs",
         "declaration": true,
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
         "noImplicitReturns": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "sortOutput": true
+        "outFile": "dist/astrologyjs.js",
+        "pretty": true,
+        "removeComments": true,
+        "sourceMap": true
     },
-    "exclude": [
-        "node_modules",
-        "dist",
-        "spec",
-        "**/*.spec.ts",
-        "coverage"
+    "files": [
+        "src/aspect.ts",
+        "src/chart.ts",
+        "src/chart-factory.ts",
+        "src/person.ts",
+        "src/planet.ts"
     ]
 }

@@ -1,5 +1,5 @@
 /// <reference path="../typings/index.d.ts" />
-import { Planet } from "./planet";
+import { Planet } from "./astrologyjs";
 
 describe("A Planet", () => {
 
@@ -12,7 +12,7 @@ describe("A Planet", () => {
     it("has a longitude", () => { expect(p.longitude).toBeDefined(); });
     it("has a latitude",  () => { expect(p.latitude ).toBeDefined(); });
     it("has a speed",     () => { expect(p.speed    ).toBeDefined(); });
-    
+
     it("can be retrograde", () => {
         // check for return type
         expect(p.isRetrograde()).toEqual(jasmine.any(Boolean));

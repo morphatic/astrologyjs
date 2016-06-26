@@ -2,8 +2,8 @@
   "name": "astrologyjs",
   "version": "1.1.0",
   "description": "A NodeJs package that will provide core functionality for including astrological charts in projects.",
-  "main": "dist/js/astrologyjs.min.js",
-  "typings": "dist/js/astrologyjs.d.ts",
+  "main": "dist/astrologyjs.js",
+  "typings": "dist/astrologyjs.d.ts",
   "scripts": {
     "test": "gulp spec"
   },
@@ -18,6 +18,9 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/morphatic/astrologyjs/issues"
+  },
+  "jshintConfig": {
+    "esversion": 6
   },
   "homepage": "https://github.com/morphatic/astrologyjs#readme",
   "devDependencies": {
@@ -41,7 +44,6 @@
     "remap-istanbul": "^0.6.4"
   },
   "dependencies": {
-    "es6-shim": "^0.35.1",
     "request-promise": "^3.0.0"
   }
 }

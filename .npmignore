@@ -1,5 +1,12 @@
-node_modules/
+logs
 *.log
 *.tgz
-
-!dist/js/astro.d.ts
+npm-debug.log*
+node_modules
+typings
+spec/**/*.js
+spec/**/*.map
+src/**/*.spec.ts
+coverage
+.DS_store
+.github_changelog_generator

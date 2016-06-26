@@ -1,6 +1,5 @@
 /// <reference path="../typings/index.d.ts" />
-import { Aspect } from "./aspect";
-import { Planet } from "./planet";
+import { Planet, Aspect } from "./astrologyjs";
 
 describe("An Aspect", () => {
 
@@ -21,7 +20,7 @@ describe("An Aspect", () => {
             ua: Aspect;
         try {
             ua = new Aspect(moon, mars);
-        } catch(err) {
+        } catch (err) {
             expect(err.message).toBe("There is no aspect between these two planets.");
         }
     });
@@ -76,6 +75,8 @@ describe("An Aspect", () => {
         a = new Aspect(mars, jupiter);
         expect(a.isApplying()).toBe(true);
         a = new Aspect(mercury, neptune);
+        expect(a.isApplying()).toBe(true);
+        a = new Aspect(neptune, mercury); // this helps our coverage
         expect(a.isApplying()).toBe(true);
         // a = new Aspect(mars, northnode); // this test is out of orb, but works
         // expect(a.isApplying()).toBe(false);
