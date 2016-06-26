@@ -170,7 +170,7 @@ export class Person {
     private static _key: string = "AIzaSyAXnIdQxap1WQuzG0XxHfYlCA5O9GQyvuY";
 
     /**
-     * Creates a Person (or Event) object
+     * Creates a Person object
      * @param {string} public name Name of the person or event
      * @param {string} public date UTC date in ISO 8601 format, i.e. YYYY-MM-DDTHH:mmZ (caller must convert to UTC)
      * @param {Point} location The [lat: number, lon: number] of the event or person's birthplace
@@ -182,7 +182,7 @@ export class Person {
      * @param  {string}          name     Name of the person or event
      * @param  {Date | string}   date     Exact datetime for the chart, preferably UTC date in ISO 8601 format, i.e. YYYY-MM-DDTHH:mmZ (caller must convert to UTC)
      * @param  {Point | string}  location Either an address or a lat/lng combination
-     * @return {Promise<Person>}          The Person or Event object that was created
+     * @return {Promise<Person>}          The Person object that was created
      */
     static async create(name: string, date: Date | string, location: Point | string): Promise<Person> {
 
@@ -191,7 +191,7 @@ export class Person {
 
         // make sure a name was submitted
         if (!name) {
-            throw new Error("No name was submitted for the person/event");
+            throw new Error("No name was submitted for the person");
         }
 
         // deal with the type of date submitted
@@ -264,12 +264,6 @@ export class Person {
         );
     }
 }
-
-/**
- * Alias for the Person class
- * @type {[type]}
- */
-export type Event = Person;
 
 interface AspectType {
     major: boolean;
@@ -626,14 +620,14 @@ export class Chart {
  */
 export class ChartFactory {
 
-    static async create(name: string, p1: Person | Event, p2: Person | Event = null, type: ChartType = ChartType.Basic) {
+    static async create(name: string, p1: Person, p2: Person = null, type: ChartType = ChartType.Basic) {
         // make sure a name was passed in
         if (null === name || "undefined" === typeof name || 0 === name.length) {
             throw Error("Chart must have a name (ChartFactory)");
         }
         // check for undefined people
         if (null === p1 || typeof p1 === "undefined") {
-            throw Error("Person or Event cannot be null or undefined (ChartFactory)");
+            throw Error("Person cannot be null or undefined (ChartFactory)");
         }
         switch (type) {
             case ChartType.Synastry:
@@ -641,7 +635,7 @@ export class ChartFactory {
             case ChartType.CombinedTransits:
             case ChartType.Davison:
                 if (null === p2) {
-                    throw Error("2nd Person or Event cannot be null for this chart type (ChartFactory)");
+                    throw Error("2nd Person cannot be null for this chart type (ChartFactory)");
                 }
         }
 

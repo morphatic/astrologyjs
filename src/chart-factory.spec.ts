@@ -124,7 +124,7 @@ describe("A Chart Factory", () => {
         try {
             c = await ChartFactory.create("Morgan natal", null);
         } catch (err) {
-            expect(err.message).toBe("Person or Event cannot be null or undefined (ChartFactory)");
+            expect(err.message).toBe("Person cannot be null or undefined (ChartFactory)");
         }
     }));
 
@@ -133,7 +133,7 @@ describe("A Chart Factory", () => {
         try {
             c = await ChartFactory.create("Morgan natal", person);
         } catch (err) {
-            expect(err.message).toBe("Person or Event cannot be null or undefined (ChartFactory)");
+            expect(err.message).toBe("Person cannot be null or undefined (ChartFactory)");
         }
     }));
 
@@ -142,7 +142,7 @@ describe("A Chart Factory", () => {
         try {
             c = await ChartFactory.create("Morgan natal", morgan, person, ChartType.Synastry);
         } catch (err) {
-            expect(err.message).toBe("2nd Person or Event cannot be null for this chart type (ChartFactory)");
+            expect(err.message).toBe("2nd Person cannot be null for this chart type (ChartFactory)");
         }
     }));
 

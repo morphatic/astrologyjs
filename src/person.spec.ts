@@ -1,7 +1,7 @@
 /// <reference path="../typings/index.d.ts" />
 import { Person } from "./astrologyjs";
 
-describe("A Person or Event", () => {
+describe("A Person", () => {
 
     let person: Person,
         testAsync = (runAsync) => { return (done) => { runAsync().then(done, e => { fail(e); done(); }); }; };
@@ -34,14 +34,14 @@ describe("A Person or Event", () => {
         expect(person).toBeDefined();
         expect(person instanceof Person).toBe(true);
         let pd = new Date(person.date);
-        expect(pd.getTime()).toBeCloseTo(d.getTime(), 2);
+        expect(pd.getTime() / 10000).toBeCloseTo(d.getTime() / 10000, 1);
     }));
 
     it("throws an error if the person/event was instantiated without a name", testAsync( async () => {
         try {
             person = await Person.create("", "1974-02-17T23:30Z", { lat: 37.4381927, lng: -79.18932});
         } catch (err) {
-            expect(err.message).toBe("No name was submitted for the person/event");
+            expect(err.message).toBe("No name was submitted for the person");
         }
     }));
 
