@@ -1,5 +1,7 @@
-/// <reference path="../typings/index.d.ts" />
-import { Chart, ChartFactory, ChartType, Person, Planet, ChartDataArray } from "./astrologyjs";
+import { Person } from "./person";
+import { Planet } from "./planet";
+import { Chart, ChartType, ChartDataArray } from "./chart";
+import { ChartFactory } from "./chart-factory";
 
 describe("A Chart", () => {
 
@@ -7,7 +9,7 @@ describe("A Chart", () => {
         morgan: Person,
         nicole: Person,
         cdata: ChartDataArray,
-        testAsync = (runAsync) => { return (done) => { runAsync().then(done, e => { fail(e); done(); }); }; };
+        testAsync = (runAsync: any) => { return (done: any) => { runAsync().then(done, (e: any) => { fail(e); done(); }); }; };
 
     beforeAll(testAsync( async () => {
         cdata = [

@@ -1,12 +1,13 @@
-/// <reference path="../typings/index.d.ts" />
-import { Chart, Person, ChartFactory, ChartType } from "./astrologyjs";
+import { Person } from "./person";
+import { Chart, ChartType } from "./chart";
+import { ChartFactory } from "./chart-factory";
 
 describe("A Chart Factory", () => {
 
     let c: Chart,
         morgan: Person,
         nicole: Person,
-        testAsync = (runAsync) => { return (done) => { runAsync().then(done, e => { fail(e); done(); }); }; };
+        testAsync = (runAsync: any) => { return (done: any) => { runAsync().then(done, (e: any) => { fail(e); done(); }); }; };
 
     beforeAll(testAsync(async () => {
         morgan = await Person.create("Morgan", "1974-02-17T23:30Z", {lat: 37.4381927, lng: -79.18932});

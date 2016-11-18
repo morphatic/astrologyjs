@@ -1,5 +1,4 @@
-/// <reference path="../typings/index.d.ts" />
-import { Planet } from "./astrologyjs";
+import { Planet } from "./planet";
 
 describe("A Planet", () => {
 

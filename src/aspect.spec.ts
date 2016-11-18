@@ -1,5 +1,5 @@
-/// <reference path="../typings/index.d.ts" />
-import { Planet, Aspect } from "./astrologyjs";
+import { Planet } from "./planet";
+import { Aspect } from "./aspect";
 
 describe("An Aspect", () => {
 
@@ -9,8 +9,8 @@ describe("An Aspect", () => {
      * Planets at 2016-06-07 1:00AM EDT, Harrisonburg, VA
      */
     beforeEach(() => {
-        let venus     = new Planet("Venus",       76.964243,  0.006298,  1.228344),
-            pluto     = new Planet("Pluto",      286.924401,  1.416432, -0.020512);
+        let venus = new Planet("Venus",  76.964243, 0.006298,  1.228344),
+            pluto = new Planet("Pluto", 286.924401, 1.416432, -0.020512);
         a = new Aspect(venus, pluto);
     });
 

@@ -1,10 +1,9 @@
-/// <reference path="../typings/index.d.ts" />
-import { Person } from "./astrologyjs";
+import { Person } from "./person";
 
 describe("A Person", () => {
 
     let person: Person,
-        testAsync = (runAsync) => { return (done) => { runAsync().then(done, e => { fail(e); done(); }); }; };
+        testAsync = (runAsync: any) => { return (done: any) => { runAsync().then(done, (e: any) => { fail(e); done(); }); }; };
 
     it("can be instantiated with lat/lon", testAsync( async () => {
         person = await Person.create("Morgan", "1974-02-17T23:30Z", {lat: 37.4381927, lng: -79.18932});

@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - '6'
 before_install:
-  - npm install -g typescript typings gulp-cli istanbul jasmine-core
+  - npm install -g typescript istanbul jasmine-core
   - typings install
 script:
   - npm test
