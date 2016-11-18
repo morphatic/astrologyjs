@@ -1,11 +1,9 @@
 language: node_js
 node_js:
   - '6'
-env:
-  - JASMINE_CONFIG_PATH=.
 before_install:
   - npm install -g typescript istanbul jasmine-core coveralls
-  - tsc
+  - tsc -p
 script:
   - npm test
 after_script:
