@@ -3,8 +3,7 @@ logs
 npm-debug.log*
 node_modules
 typings
-spec/**/*.js
-spec/**/*.map
+spec
 coverage
 .DS_store
 .github_changelog_generator
