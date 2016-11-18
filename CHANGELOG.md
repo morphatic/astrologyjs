@@ -1,5 +1,8 @@
 # Change Log
 
+## [v1.3.0](https://github.com/morphatic/astrologyjs/tree/v1.3.0) (2016-11-18)
+[Full Changelog](https://github.com/morphatic/astrologyjs/compare/v1.2.0...v1.3.0)
+
 ## [v1.2.0](https://github.com/morphatic/astrologyjs/tree/v1.2.0) (2016-06-26)
 [Full Changelog](https://github.com/morphatic/astrologyjs/compare/v1.1.0...v1.2.0)
 
