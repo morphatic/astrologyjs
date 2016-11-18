@@ -3,8 +3,8 @@ node_js:
   - '6'
 before_install:
   - npm install -g typescript istanbul jasmine-core coveralls
-  - tsc -p
 script:
+  - tsc -p
   - npm test
 after_script:
   - cat ./coverage/lcov.info | coveralls
