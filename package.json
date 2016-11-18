@@ -1,6 +1,6 @@
 {
   "name": "astrologyjs",
-  "version": "1.4.0",
+  "version": "1.3.0",
   "description": "An astrological charting library.",
   "main": "dist/astrologyjs.min.js",
   "jsnext:main": "dist/astrologyjs-es6.js",
