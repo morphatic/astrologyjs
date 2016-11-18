@@ -5,7 +5,7 @@
   "main": "dist/astrologyjs.min.js",
   "types": "dist/astrologyjs.d.ts",
   "scripts": {
-    "test": "istanbul cover -x **/*.spec.js -x jasmine-runner.js jasmine-runner.js"
+    "test": "istanbul cover -x '**/*.spec.js' -x jasmine-runner.js jasmine-runner.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "@types/request": "0.0.33",
     "@types/request-promise": "^4.1.33",
     "babel-preset-es2015-rollup": "^1.2.0",
+    "chai": "^3.5.0",
     "jasmine": "^2.5.2",
     "jasmine-core": "^2.5.2",
     "jasmine-spec-reporter": "^2.7.0",

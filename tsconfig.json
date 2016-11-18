@@ -9,6 +9,7 @@
         "moduleResolution": "node"
     },
     "include": [
-        "src/main.ts"
+        "src/main.ts",
+        "src/*.spec.ts"
     ]
 }
