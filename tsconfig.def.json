@@ -1,9 +1,10 @@
 {
     "compilerOptions": {
-        "module": "commonjs",
+        "module": "amd",
         "target": "es6",
         "noImplicitAny": true,
-        "outDir": "src/js",
+        "declaration": true,
+        "outFile": "src/js/astrologyjs.js",
         "moduleResolution": "node"
     },
     "include": [

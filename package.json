@@ -3,9 +3,17 @@
   "version": "1.4.0",
   "description": "An astrological charting library.",
   "main": "dist/astrologyjs.min.js",
+  "jsnext:main": "dist/astrologyjs-es6.js",
   "types": "dist/astrologyjs.d.ts",
   "scripts": {
-    "test": "istanbul cover -x '**/*.spec.js' -x jasmine-runner.js jasmine-runner.js"
+    "test": "npm run build:test && npm run cover && npm run remap",
+    "cover": "istanbul cover -x '**/*.spec.js' -x jasmine-runner.js jasmine-runner.js",
+    "uglify": "uglifyjs dist/astrologyjs.js -m -c warnings=false > dist/astrologyjs.min.js",
+    "remap": "remap-istanbul -i coverage/coverage.json -o coverage/lcov-report -t html",
+    "build:def": "tsc -p tsconfig.def.json && mv src/js/astrologyjs.d.ts dist && rm src/js/astrologyjs.js",
+    "build:test": "tsc -p tsconfig.test.json",
+    "build:dist": "tsc -p tsconfig.json && rollup -c",
+    "build": "npm run build:def && npm run build:dist && npm run uglify"
   },
   "repository": {
     "type": "git",
@@ -30,6 +38,7 @@
     "jasmine": "^2.5.2",
     "jasmine-core": "^2.5.2",
     "jasmine-spec-reporter": "^2.7.0",
+    "remap-istanbul": "^0.7.0",
     "rollup-plugin-babel": "^2.6.1",
     "rollup-plugin-commonjs": "^5.0.5",
     "rollup-plugin-eslint": "^3.0.0",

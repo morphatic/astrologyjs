@@ -5,8 +5,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 
 export default {
-    moduleName: 'astrologyjs',
-    entry: 'src/js/main.js',
+    entry: 'src/js/astrologyjs.js',
     format: 'umd',
     plugins: [
         resolve({
@@ -27,6 +26,16 @@ export default {
         'https': 'https'
     },
     exports: 'named',
-    dest: 'dist/astrologyjs.js',
-    sourceMap: true
+    targets: [
+        {
+            dest: 'dist/astrologyjs.js',
+            format: 'umd',
+            moduleName: 'astrologyjs',
+            sourceMap: true
+        },
+        {
+            dest: 'dist/astrologyjs-es6.js',
+            format: 'es'
+        }
+    ]
 };

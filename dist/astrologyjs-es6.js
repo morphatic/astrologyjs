@@ -1,11 +1,5 @@
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('https'), require('http')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'https', 'http'], factory) :
-  (factory((global.astrologyjs = global.astrologyjs || {}),global.https,global.http));
-}(this, (function (exports,https,http) { 'use strict';
-
-https = 'default' in https ? https['default'] : https;
-http = 'default' in http ? http['default'] : http;
+import https from 'https';
+import http from 'http';
 
 var asyncGenerator = function () {
   function AwaitValue(value) {
@@ -1257,15 +1251,4 @@ var astrologyjs = {
 	ChartFactory: ChartFactory
 };
 
-exports['default'] = astrologyjs;
-exports.Planet = Planet;
-exports.Person = Person;
-exports.Aspect = Aspect;
-exports.Chart = Chart;
-exports.ChartType = ChartType;
-exports.ChartFactory = ChartFactory;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
-//# sourceMappingURL=astrologyjs.js.map
+export { Planet, Person, Aspect, Chart, ChartType, ChartFactory };export default astrologyjs;
