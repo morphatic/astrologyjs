@@ -1,7 +1,7 @@
-import { Person } from "./person";
+import { Person, Point } from "./person";
 import { Planet } from "./planet";
 import { Aspect } from "./aspect";
-import { ChartFactory } from "./chart-factory";
+import { default as rp } from "./rp";
 
 export enum ChartType {
     Basic,
@@ -185,6 +185,23 @@ export class Chart {
     }
 
     /**
+     * Gets chart data from the online ephemeris
+     * @param {string} date A UTC datetime string in ISO 8601 format
+     * @param {Point}  p    An object with numeric lat and lng properties
+     * @return {Promise<ChartData>}  A JSON object with the data needed to implement a chart
+     */
+    static async getChartData(date: string, p: Point): Promise<ChartData> {
+        return await rp({
+            uri: "http://www.morphemeris.com/ephemeris.php",
+            qs: {
+                date: date,
+                lat: p.lat,
+                lon: p.lng
+            }
+        }).then((cdata: ChartData) => cdata);
+    }
+
+    /**
      * Refresh or set the transits to a new time
      * @param {string} date (Optional) Target datetime for transits in ISO 8601 format; defaults to now()
      */
@@ -195,7 +212,7 @@ export class Chart {
         if (null === date) {
             date = new Date().toISOString();
         }
-        let cdata = await ChartFactory.getChartData(date, this.p1.location);
+        let cdata = await Chart.getChartData(date, this.p1.location);
         this._planets2 = this.getPlanets(cdata);
         this.calculateAspects();
     }

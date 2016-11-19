@@ -1,9 +1,8 @@
 import { Person, Point } from "./person";
 import { Chart, ChartType, ChartData } from "./chart";
-import { default as rp } from "./rp";
 
 /**
- * Usage: let chart: Chart = ChartFactory.create("my cart", person);
+ * Usage: let chart: Chart = ChartFactory.create("my chart", person);
  */
 export class ChartFactory {
 
@@ -30,39 +29,39 @@ export class ChartFactory {
         switch (type) {
             case ChartType.Transits:
                 cdata = await Promise.all([
-                    ChartFactory.getChartData(p1.date, p1.location),
-                    ChartFactory.getChartData(new Date().toISOString(), p1.location)
+                    Chart.getChartData(p1.date, p1.location),
+                    Chart.getChartData(new Date().toISOString(), p1.location)
                 ]);
                 return new Chart(name, p1, cdata, null, type);
             case ChartType.Synastry:
             case ChartType.Combined:
                 cdata = await Promise.all([
-                    ChartFactory.getChartData(p1.date, p1.location),
-                    ChartFactory.getChartData(p2.date, p2.location)
+                    Chart.getChartData(p1.date, p1.location),
+                    Chart.getChartData(p2.date, p2.location)
                 ]);
                 return new Chart(name, p1, cdata, null, type);
             case ChartType.CombinedTransits:
                 cdata = await Promise.all([
-                    ChartFactory.getChartData(p1.date, p1.location),
-                    ChartFactory.getChartData(p2.date, p2.location),
-                    ChartFactory.getChartData(new Date().toISOString(), p1.location)
+                    Chart.getChartData(p1.date, p1.location),
+                    Chart.getChartData(p2.date, p2.location),
+                    Chart.getChartData(new Date().toISOString(), p1.location)
                 ]);
                 return new Chart(name, p1, cdata, null, type);
             case ChartType.Davison:
                 date = ChartFactory.getDatetimeMidpoint(p1.date, p2.date);
                 p = ChartFactory.getGeoMidpoint(p1.location, p2.location);
-                cdata.push(await ChartFactory.getChartData(date, p));
+                cdata.push(await Chart.getChartData(date, p));
                 return new Chart(name, p1, cdata);
             case ChartType.DavisonTransits:
                 date = ChartFactory.getDatetimeMidpoint(p1.date, p2.date);
                 p = ChartFactory.getGeoMidpoint(p1.location, p2.location);
                 cdata = await Promise.all([
-                    ChartFactory.getChartData(date, p),
-                    ChartFactory.getChartData(new Date().toISOString(), p)
+                    Chart.getChartData(date, p),
+                    Chart.getChartData(new Date().toISOString(), p)
                 ]);
                 return new Chart(name, p1, cdata, null, type);
             default:
-                cdata.push(await ChartFactory.getChartData(p1.date, p1.location));
+                cdata.push(await Chart.getChartData(p1.date, p1.location));
                 return new Chart(name, p1, cdata);
         }
     }
@@ -108,23 +107,6 @@ export class ChartFactory {
 
         ts = d1 < d2 ? d1 + ((d2 - d1) / 2) : d2 + ((d1 - d2) / 2);
         return new Date(ts).toISOString();
-    }
-
-    /**
-     * Gets chart data from the online ephemeris
-     * @param {string} date A UTC datetime string in ISO 8601 format
-     * @param {Point}  p    An object with numeric lat and lng properties
-     * @return {Promise<ChartData>}  A JSON object with the data needed to implement a chart
-     */
-    static async getChartData(date: string, p: Point): Promise<ChartData> {
-        return await rp({
-            uri: "http://www.morphemeris.com/ephemeris.php",
-            qs: {
-                date: date,
-                lat: p.lat,
-                lon: p.lng
-            }
-        }).then((cdata: ChartData) => cdata);
     }
 
     /**
