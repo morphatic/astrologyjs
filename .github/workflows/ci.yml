@@ -164,7 +164,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm format:check
-      - run: pnpm test
+      - run: pnpm test:unit
+      # @cucumber/cucumber@13 requires Node 22+, but the library's `engines`
+      # floor is 20.19 and the unit suite must keep covering it. The BDD runner
+      # is a dev tool, not a runtime constraint, so it runs where it can.
+      - run: pnpm test:bdd
+        if: matrix.node != '20'
 
   audit:
     # Dependency-advisory gate, delegated to the reusable workflow in
