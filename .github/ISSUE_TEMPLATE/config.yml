@@ -1,0 +1,8 @@
+# Issue templates (pattern ported from heliotrek).
+#
+# Three structured forms (bug / enhancement / docs) capture the
+# information an implementer needs to scope, plan, and finish an
+# issue without a follow-up round of clarification. The forms are
+# the recommended path; blank issues stay enabled as an escape
+# hatch but should be the exception.
+blank_issues_enabled: true

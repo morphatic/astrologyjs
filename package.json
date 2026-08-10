@@ -1,56 +1,45 @@
 {
   "name": "astrologyjs",
   "version": "1.3.1",
-  "description": "An astrological charting library.",
-  "main": "dist/astrologyjs.min.js",
-  "jsnext:main": "dist/astrologyjs-es6.js",
-  "types": "dist/astrologyjs.d.ts",
-  "scripts": {
-    "test": "npm run build:test && npm run cover && npm run remap",
-    "cover": "istanbul cover -x '**/*.spec.js' -x jasmine-runner.js jasmine-runner.js",
-    "uglify": "uglifyjs dist/astrologyjs.js -m -c warnings=false > dist/astrologyjs.min.js",
-    "remap:json": "remap-istanbul -i coverage/coverage.json -o coverage/coverage-remapped.json",
-    "remap:lcov": "remap-istanbul -i coverage/coverage.json -o coverage/coverage-remapped.lcov -t lcovonly",
-    "remap:html": "remap-istanbul -i coverage/coverage.json -o coverage/lcov-report -t html",
-    "remap": "npm run remap:json && npm run remap:lcov && npm run remap:html",
-    "build:def": "tsc -p tsconfig.def.json && mv src/js/astrologyjs.d.ts dist && rm src/js/astrologyjs.js",
-    "build:test": "tsc -p tsconfig.test.json",
-    "build:dist": "tsc -p tsconfig.json && rollup -c",
-    "build": "npm run build:def && npm run build:dist && npm run uglify"
+  "description": "An astrological charting library, backed by the Morphemeris ephemeris API.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.19"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/morphatic/astrologyjs.git"
   },
   "keywords": [
-    "astrology"
+    "astrology",
+    "astrological",
+    "horoscope",
+    "natal-chart",
+    "ephemeris",
+    "synastry",
+    "transits",
+    "aspects",
+    "swiss-ephemeris",
+    "morphemeris"
   ],
-  "author": "Morgan Benton <morgan.benton@gmail.com> (http://morphatic.com)",
+  "author": "Morgan Benton <morgan.benton@gmail.com> (https://morphatic.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/morphatic/astrologyjs/issues"
   },
-  "homepage": "https://github.com/morphatic/astrologyjs#readme",
-  "devDependencies": {
-    "@types/jasmine": "^2.5.37",
-    "@types/node": "^6.0.48",
-    "@types/request": "0.0.33",
-    "@types/request-promise": "^4.1.33",
-    "babel-plugin-transform-runtime": "^6.15.0",
-    "babel-preset-es2015-rollup": "^1.2.0",
-    "chai": "^3.5.0",
-    "jasmine": "^2.5.2",
-    "jasmine-core": "^2.5.2",
-    "jasmine-spec-reporter": "^2.7.0",
-    "remap-istanbul": "^0.7.0",
-    "rollup-plugin-babel": "^2.6.1",
-    "rollup-plugin-commonjs": "^5.0.5",
-    "rollup-plugin-eslint": "^3.0.0",
-    "rollup-plugin-json": "^2.0.2",
-    "rollup-plugin-node-resolve": "^2.0.0"
-  },
-  "dependencies": {
-    "babel-runtime": "^6.18.0",
-    "node": "0.0.0"
-  }
+  "homepage": "https://github.com/morphatic/astrologyjs#readme"
 }

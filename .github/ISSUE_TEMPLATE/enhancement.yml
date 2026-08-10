@@ -1,0 +1,76 @@
+name: Enhancement / Feature
+description: Propose new behavior or improve existing behavior. Use this for product, UX, infra, and developer-experience improvements.
+title: "[enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for any improvement that isn't fixing a defect. The fields capture the *why* (intent), the *what* (proposed behavior), and a binding *done-when* (acceptance criteria) — enough for an implementer to plan without re-asking.
+
+        **After submitting**, please:
+        - Add a `priority:critical|high|medium|low` label.
+        - Add the `NOT4AI` label if this is human-only work (e.g., creative direction, contract negotiation, third-party operator action).
+
+  - type: textarea
+    id: intent
+    attributes:
+      label: Intent — why this matters
+      description: |
+        The *user* / *product* / *business* intent this serves. Not "what should happen" — that's the next field.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed behavior
+      description: |
+        What should happen, described in user-visible terms where possible. Implementation choices (component library, data structure, etc.) belong to the implementer unless they're load-bearing — in which case explain *why* in the Intent field.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      description: |
+        Bullet list of binding "this is done when…" checkpoints. The implementer needs these to know when they're done and the reviewer needs them to verify completion. Keep them observable.
+      placeholder: |
+        - [ ] …
+        - [ ] …
+    validations:
+      required: true
+
+  - type: input
+    id: spec_section
+    attributes:
+      label: Spec section (optional)
+      description: e.g. "§9.3" — if this enhancement maps to a binding contract in plinth/specs/.
+      placeholder: §X.Y
+
+  - type: dropdown
+    id: visible_ui_changes
+    attributes:
+      label: Will this introduce or change visible UI?
+      description: Aesthetics is Morgan's call. Flag visible deltas so the implementer surfaces them for review before shipping.
+      options:
+        - "Yes — net-new UI surface"
+        - "Yes — change to existing UI surface"
+        - "No — backend / infra / docs only"
+        - "Unsure — implementer should flag"
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope (optional)
+      description: |
+        Things this issue specifically does NOT cover. Useful for preventing scope creep during implementation.
+
+  - type: textarea
+    id: related_issues
+    attributes:
+      label: Related issues / dependencies
+      description: Blocks, blocked by, or related issues by number. e.g. "Blocked by #127, blocks #139."

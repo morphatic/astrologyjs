@@ -1,0 +1,57 @@
+name: Documentation / Spec
+description: Report or propose a change to docs (CLAUDE.md, plinth/specs/*, plinth/planning/*, plinth/research/*, README, ADRs, etc.).
+title: "[docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for doc-only or spec-only changes. If the issue requires both a doc AND a code change to satisfy a contract, file a separate enhancement / bug instead and link this for the doc piece.
+
+        **After submitting**, please add a `priority:critical|high|medium|low` label.
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Path to the file (or section) being changed.
+      placeholder: plinth/specs/<name>.nlspec.md §17.5
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_is_wrong
+    attributes:
+      label: What's wrong / missing
+      description: |
+        The current state of the doc and why it needs to change. Quote the exact passage if helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_change
+    attributes:
+      label: Proposed change
+      description: |
+        What should the doc say instead? Either a draft or a description of the gap. If the change is bound by an implementation decision, link the PR / commit that landed the deviation.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contract_impact
+    attributes:
+      label: Contract impact
+      description: |
+        Does this change move a contract boundary? (Spec contracts under `plinth/specs/*.nlspec.md` are binding; rationale + research files are advisory.)
+      options:
+        - "Yes — contract change (binding)"
+        - "No — rationale, research, or process documentation only"
+        - "Unsure — needs review"
+    validations:
+      required: true
+
+  - type: textarea
+    id: related_issues
+    attributes:
+      label: Related issues / dependencies
+      description: Blocks, blocked by, or related issues by number.

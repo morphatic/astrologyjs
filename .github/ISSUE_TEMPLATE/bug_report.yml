@@ -1,0 +1,77 @@
+name: Bug report
+description: Report a defect in shipped behavior — something that should work but doesn't.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. The fields below help an implementer (human or AI) reproduce, scope, and fix the defect quickly.
+
+        **After submitting**, please:
+        - Add a `priority:critical|high|medium|low` label.
+        - Add the `NOT4AI` label if this requires human-only attention (e.g., aesthetic judgment calls, decisions reserved for the maintainer).
+
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current behavior
+      description: What's happening today. Be specific about which surface (route, component, scenario, command).
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: What should happen instead. Reference the spec section if behavior is bound by contract.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Numbered steps starting from a fresh session if possible. The implementer must be able to follow these and observe the bug.
+      placeholder: |
+        1. Navigate to /…
+        2. Click …
+        3. Observe …
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_surfaces
+    attributes:
+      label: Affected surfaces
+      description: Routes, components, files, scenarios, or memory entries the fix is likely to touch. Helps scope the work.
+      placeholder: |
+        - src/…
+        - features/….feature
+        - memory: project_…
+
+  - type: input
+    id: spec_section
+    attributes:
+      label: Spec section (optional)
+      description: e.g. "§17.4" — anchors the fix on a binding contract in plinth/specs/.
+      placeholder: §X.Y
+
+  - type: dropdown
+    id: visible_ui_changes
+    attributes:
+      label: Will the fix change visible UI?
+      description: Aesthetics is Morgan's call — visible deltas need surfacing for review before shipping.
+      options:
+        - "Yes — note the visual delta in the description above"
+        - "No — backend / non-visible code only"
+        - "Unsure — implementer should flag"
+        - "N/A — this project has no UI"
+    validations:
+      required: true
+
+  - type: textarea
+    id: related_issues
+    attributes:
+      label: Related issues / dependencies
+      description: Blocks, blocked by, or related issues by number. e.g. "Depends on #127."
