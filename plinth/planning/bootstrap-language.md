@@ -7,7 +7,7 @@ This project was scaffolded without a language or stack committed. Once the stac
 Ordered by stack. Framework commands automatically run their language prerequisites — don't run them separately.
 
 | Stack | Command |
-|-------|---------|
+| ------- | --------- |
 | Rust | `/bootstrap-rust` |
 | Python (services, CLIs, libraries) | `/bootstrap-python` |
 | Python (data science, pipelines, data quality) | `/bootstrap-python` — detects the data profile and layers on the dataframe + data-contract stack |
