@@ -16,7 +16,7 @@
 - **3. Data Model** — `AstrologyConfig`, `ChartOptions` (a chart's *frame*), `GeoPoint`, `Person`, `Planet`, `Aspect`, `Chart`.
 - **4. Configuration and Authentication** — key resolution order, Bearer transmission, and the browser-exposure position.
 - **5. Person and Time Resolution** — the strictest section, owning the highest-ranked failure mode. Accepted time inputs, zone precedence, unknown-time modes, geocoding, and the rule that ambiguous times **throw**.
-- **6. Bodies** — supported-body table and Morphemeris mapping, the data-driven registry rule, south-node derivation, local sign assignment.
+- **6. Bodies** — supported-body table and Morphemeris mapping, the data-driven registry rule, south-node derivation, local sign assignment, and **6.5** locally derived declination and out-of-bounds (the API's fields are wrong — do not read them).
 - **7. Chart Construction** — seven chart types with request and credit counts, frame consistency, and `refreshTransits()` with its instant rounding.
 - **8. Aspects** — orb as distance from exactness, closest-match selection, derived/source exclusion, absence-of-aspect as a value.
 - **9. Ephemeris Access** — `POST /v1/chart` only (not `/v1/batch`), adapter invariants, promise-level request deduplication, retry policy.

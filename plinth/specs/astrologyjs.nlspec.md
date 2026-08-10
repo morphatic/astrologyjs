@@ -276,8 +276,8 @@ RECORD Planet:
     latitude     : Number     -- ecliptic latitude, degrees
     speed        : Number     -- degrees/day; negative = retrograde
     distance     : Number     -- AU
-    declination  : Number     -- degrees
-    outOfBounds  : Boolean    -- |declination| exceeds obliquity
+    declination  : Number     -- degrees; DERIVED locally, see §6.5
+    outOfBounds  : Boolean    -- |declination| exceeds obliquity; DERIVED, §6.5
     sign         : SignName   -- always computed locally from longitude (§6.4)
     signDegree   : Number     -- degrees within sign, [0, 30)
     derived      : Boolean    -- true when computed rather than fetched (§6.3)
@@ -512,10 +512,10 @@ Correct handling of pre-standard-time dates (local mean time), historical war ti
 | Library name | Morphemeris `BodyId` | Notes |
 | --- | --- | --- |
 | `sun` … `pluto` | `SUN` … `PLUTO` | The ten classical bodies |
-| `north node` | `TRUE_NODE` / `MEAN_NODE` | Selected by `ChartOptions.node` |
+| `north node` | `true_node` / `mean_node` | Selected by `ChartOptions.node`. The API's `planets` group contains `mean_node`, so the true node must always be requested explicitly. |
 | `south node` | — | **Derived** (§6.3) |
-| `lilith` | `MEAN_APOGEE` | Black Moon Lilith is the lunar apogee |
-| `osculating lilith` | `OSCULATING_APOGEE` | Opt-in |
+| `lilith` | `mean_apogee` | Black Moon Lilith is the lunar apogee |
+| `osculating lilith` | `osc_apogee` | Opt-in. The identifier is `osc_apogee`, not `osculating_apogee`. |
 | `chiron`, `pholus` | `CHIRON`, `PHOLUS` | |
 | `ceres`, `pallas`, `juno`, `vesta` | `CERES`, `PALLAS`, `JUNO`, `VESTA` | |
 
@@ -566,6 +566,42 @@ FUNCTION deriveSouthNode(northNode: Planet) -> Planet:
 --   even though /v1/chart returns them.
 -- - Rationale: the API returns them for tropical output only. Computing locally
 --   yields one code path that is correct in both tropical and sidereal frames.
+```
+
+### 6.5 Declination and out-of-bounds
+
+```pseudo
+FUNCTION meanObliquity(jd) -> Number:
+    -- IAU/Laskar polynomial in Julian centuries from J2000, arcsecond accuracy
+
+FUNCTION declination(longitude, latitude, obliquity) -> Number:
+    LET l = radians(longitude), b = radians(latitude), e = radians(obliquity)
+    RETURN degrees(ASIN(SIN(b)*COS(e) + COS(b)*SIN(e)*SIN(l)))
+
+FUNCTION outOfBounds(declination, obliquity) -> Boolean:
+    RETURN ABS(declination) > obliquity
+
+-- Behavior:
+-- - Both are computed locally from the body's ecliptic longitude and latitude
+--   and the mean obliquity for the chart's instant. Neither is read from the
+--   API response.
+-- - Obliquity is a function of date, so it is computed per chart, not fixed.
+
+-- Invariant:
+-- - The API's `declination` and `out_of_bounds` fields MUST NOT be used. As of
+--   2026-08-10 the API returns the value of the `latitude` slot in the
+--   `declination` field, which in the default ecliptic mode is ecliptic
+--   latitude, not declination. Measured against 20 bodies the error reached 23°,
+--   and the dependent `out_of_bounds` flag inverted: Pallas (ecliptic latitude
+--   28.4°, true declination 6.1°) was flagged out of bounds while bodies
+--   genuinely near the limit were not. Reading those fields would ship a
+--   plausible wrong number, which §1.2 forbids.
+-- - Local derivation was validated against the API's own `equatorial=true`
+--   output, which is correct, and agreed to five decimal places. Deriving costs
+--   nothing; a second request per chart for equatorial data would double the
+--   credit cost of every chart (§12).
+-- - This is tracked as an upstream defect. When it is fixed, the derivation
+--   stays: it is free, it is verified, and it removes a dependency.
 ```
 
 ---
@@ -657,7 +693,7 @@ FUNCTION findAspect(p1, p2) -> Aspect?:
     LET sep = separation(p1, p2)
     LET best = the catalogue entry minimizing ABS(sep - entry.angle)
                among entries where ABS(sep - entry.angle) <= entry.orb
-    IF best is absent: RETURN null
+    IF best is absent: RETURN undefined
     RETURN Aspect { type: best.name, angle: best.angle,
                     orb: ABS(sep - best.angle), ... }
 
@@ -691,7 +727,10 @@ For single-ring charts, aspects are computed between all pairs within `planets`.
 
 ```pseudo
 -- Invariant:
--- - `findAspect` returns null when no aspect exists. It does not throw.
+-- - `findAspect` returns undefined when no aspect exists. It does not throw.
+--   (`undefined` rather than `null` per the TypeScript standards, which make
+--   `undefined` the absent value. The invariant is about not throwing; the
+--   choice of nullish value is style.)
 -- - 1.x threw from Aspect's constructor for the ordinary case of two planets not
 --   in aspect — which is most pairs in every chart — and Chart.calculateAspects
 --   caught and discarded it unless a private `_debug` flag was set. A genuine
@@ -716,9 +755,10 @@ Requests composing one chart are issued **concurrently as individual calls**, no
 FUNCTION adapt(response: MorphemerisChartData, requested: BodyName[]) -> ChartData
 
 -- Behavior:
--- - Maps `longitude`/`latitude`/`speed`/`distance`/`declination`/`out_of_bounds`
---   onto the Planet record, and `cusps`/`ascendant`/`midheaven`/`vertex` onto the
---   chart's angles.
+-- - Maps `longitude`/`latitude`/`speed`/`distance` onto the Planet record, and
+--   `cusps`/`ascendant`/`midheaven`/`vertex` onto the chart's angles.
+-- - Does NOT read the response's `declination`, `out_of_bounds`, `sign`, or
+--   `sign_degree`. All four are derived locally (§6.4, §6.5).
 -- - Passes `HouseCusps.warnings` through to `Chart.warnings` (§10.4).
 
 -- Invariant:
@@ -943,6 +983,9 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [ ] "No aspect" returns an absent value; no code path throws for it
 - [ ] `sign` and `signDegree` are computed locally and are correct in both tropical and sidereal frames
 - [ ] South node derivation is exact: 180° opposed, latitude and declination negated
+- [ ] `declination` is derived locally and matches the API's `equatorial=true` output to 5 decimal places
+- [ ] `outOfBounds` is computed against the obliquity for the chart's own date
+- [ ] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
 - [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance
 
 ### Time

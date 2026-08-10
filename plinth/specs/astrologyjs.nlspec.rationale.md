@@ -119,6 +119,28 @@ Vedic practice conventionally uses the mean node, but Vedic work requires opting
 
 Returning both as distinct bodies was rejected: it doubles the node entries in every chart and forces every consumer, including the aspect engine, to decide which to use.
 
+### Why declination and out-of-bounds are derived rather than read
+
+Found on 2026-08-10 during the first real call to `/v1/chart`, before any adapter code existed.
+
+The API returns a `declination` field and an `out_of_bounds` flag, and its own spec §3.3 defines them exactly as you would expect. The implementation does not match: `declination` carries whatever occupies the `latitude` slot. In the default ecliptic mode that is *ecliptic latitude*, not declination.
+
+Measured across all 20 bodies for 1974-02-17T23:30Z, every `declination` was byte-identical to `latitude`, and the error against independently computed values reached 23°. The Sun came back at −0.00003° when its true declination was −11.85°.
+
+`out_of_bounds` inherits the fault and inverts in practice. It flagged Pallas — ecliptic latitude 28.4°, actual declination 6.1° — as out of bounds, while Saturn at 22.5° and the mean node at −23.4°, both genuinely near the limit, were not. Out-of-bounds is an astrologically meaningful condition, so a flag wrong in both directions is worse than no flag.
+
+Three options: pass the value through, request `equatorial=true` as a second call, or derive locally.
+
+Passing through is excluded by [§1.2](./astrologyjs.nlspec.md#12-design-principles) — it is precisely a plausible wrong number, and the kind that renders fine and reads fine.
+
+A second request would work, since with `equatorial=true` the latitude slot holds declination and the field is correct there by accident. But it doubles the credit cost of every chart, against a spec whose scarce resource is credits ([§12](./astrologyjs.nlspec.md#12-performance-and-cost)).
+
+Deriving locally costs nothing and is standard spherical trigonometry — `asin(sin β cos ε + cos β sin ε sin λ)`, with mean obliquity from the Laskar polynomial. It was validated against the API's own equatorial output and agreed to five decimal places on every body checked: Sun −11.848277, Saturn 22.518147, Pallas 6.119595. It also fits the principle that the service supplies ephemeris and the library computes.
+
+The derivation stays even after the upstream bug is fixed: it is free, verified, and one less thing to depend on.
+
+Filed as a cross-repo finding for `morphatic/morphemeris`. Two defects: the `declination` aliasing above, and separately, the `equatorial=true` response reuses the `longitude`/`latitude` field names rather than the `right_ascension`/`declination` names its own spec defines for `BodyPositionEquatorial`.
+
 ### Why drop the five missing bodies rather than block on them?
 
 1.x's hardcoded body list includes `eris`, `chariklo`, `chaos`, `nessus`, and `cupido`, none of which Morphemeris carries.
