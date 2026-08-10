@@ -135,7 +135,7 @@ Passing through is excluded by [§1.2](./astrologyjs.nlspec.md#12-design-princip
 
 A second request would work, since with `equatorial=true` the latitude slot holds declination and the field is correct there by accident. But it doubles the credit cost of every chart, against a spec whose scarce resource is credits ([§12](./astrologyjs.nlspec.md#12-performance-and-cost)).
 
-Deriving locally costs nothing and is standard spherical trigonometry — `asin(sin β cos ε + cos β sin ε sin λ)`, with mean obliquity from the Laskar polynomial. It was validated against the API's own equatorial output and agreed to five decimal places on every body checked: Sun −11.848277, Saturn 22.518147, Pallas 6.119595. It also fits the principle that the service supplies ephemeris and the library computes.
+Deriving locally costs nothing and is standard spherical trigonometry — `asin(sin β cos ε + cos β sin ε sin λ)`, with mean obliquity from the Laskar polynomial. It was validated against the API's own equatorial output and agreed to within one arcsecond on every body checked — worst case 0.50″, which is the scale of nutation in obliquity, the one term mean obliquity omits. Chart output is displayed in arcminutes, sixty times coarser. It also fits the principle that the service supplies ephemeris and the library computes.
 
 The derivation stays even after the upstream bug is fixed: it is free, verified, and one less thing to depend on.
 

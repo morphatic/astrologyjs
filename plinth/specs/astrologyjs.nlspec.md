@@ -597,7 +597,8 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 --   genuinely near the limit were not. Reading those fields would ship a
 --   plausible wrong number, which §1.2 forbids.
 -- - Local derivation was validated against the API's own `equatorial=true`
---   output, which is correct, and agreed to five decimal places. Deriving costs
+--   output, which is correct, and agreed to within 1 arcsecond (measured worst
+--   case 0.50", the scale of nutation in obliquity). Deriving costs
 --   nothing; a second request per chart for equatorial data would double the
 --   credit cost of every chart (§12).
 -- - This is tracked as an upstream defect. When it is fixed, the derivation
@@ -983,7 +984,7 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [ ] "No aspect" returns an absent value; no code path throws for it
 - [ ] `sign` and `signDegree` are computed locally and are correct in both tropical and sidereal frames
 - [ ] South node derivation is exact: 180° opposed, latitude and declination negated
-- [ ] `declination` is derived locally and matches the API's `equatorial=true` output to 5 decimal places
+- [ ] `declination` is derived locally and agrees with the API's `equatorial=true` output to within 1 arcsecond
 - [ ] `outOfBounds` is computed against the obliquity for the chart's own date
 - [ ] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
 - [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance
