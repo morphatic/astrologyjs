@@ -41,5 +41,47 @@
   "bugs": {
     "url": "https://github.com/morphatic/astrologyjs/issues"
   },
-  "homepage": "https://github.com/morphatic/astrologyjs#readme"
+  "homepage": "https://github.com/morphatic/astrologyjs#readme",
+  "dependencies": {
+    "tz-lookup": "^6.1.25"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^13.2.1",
+    "@eslint/js": "^10.0.1",
+    "@tsconfig/node20": "^20.1.9",
+    "@tsconfig/strictest": "^2.0.8",
+    "@types/node": "^26.2.0",
+    "@types/tz-lookup": "^6.1.2",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.8.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "fast-check": "^4.9.0",
+    "prettier": "^3.9.6",
+    "temporal-polyfill": "^1.0.3",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.12",
+    "typedoc": "^0.28.20",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.66.0",
+    "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:unit": "vitest run",
+    "test:bdd": "cross-env NODE_OPTIONS=\"--import tsx\" cucumber-js",
+    "test": "pnpm test:unit && pnpm test:bdd",
+    "test:watch": "vitest",
+    "docs": "typedoc"
+  }
 }

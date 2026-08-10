@@ -39,3 +39,7 @@ target/
 
 # Strategy, positioning, and planning docs — deliberately untracked (public repo)
 plinth/private/
+
+# --- added by gitignore-autoupdate ---
+node_modules/
+# --- end gitignore-autoupdate ---

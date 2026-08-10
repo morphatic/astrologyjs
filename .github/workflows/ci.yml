@@ -138,56 +138,33 @@ jobs:
         run: markdownlint "**/*.md" --ignore node_modules --ignore target --ignore dist
 
   test:
-    name: test
+    name: test (node ${{ matrix.node }})
     runs-on: ubuntu-latest
     # Generous hung-run cap; tighten to ~2x the observed worst case
     # once the suite has a track record.
     timeout-minutes: 30
     needs: changes
     if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        # 20 is the `engines` floor (require(esm) landed in 20.19); the
+        # others are current. A library that declares a floor must test it.
+        node: [20, 22, 24]
     steps:
       - uses: actions/checkout@v7
 
-      # Language-specific test steps go here. Examples (uncomment as appropriate):
-      #
-      # --- Rust ---
-      # - uses: dtolnay/rust-toolchain@stable
-      #   with: { components: 'rustfmt, clippy' }
-      # - uses: Swatinem/rust-cache@v2
-      # - run: cargo fmt --all -- --check
-      # - run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-      # - run: cargo test --workspace
-      #
-      # --- Python (uv) ---
-      # Order matters: lint, format, types, then tests. Never pass --fix
-      # or run `ruff format` without --check in CI — a job that mutates
-      # the tree hides the failure it should report.
-      # - uses: astral-sh/setup-uv@v9
-      #   with: { enable-cache: true }
-      # - run: uv python install
-      # - run: uv sync --locked --all-groups
-      # - run: uv run ruff check --output-format=github .
-      # - run: uv run ruff format --check .
-      # - run: uv run mypy src tests
-      # - run: uv run pytest
-      #
-      # --- Node (pnpm) ---
-      # - uses: pnpm/action-setup@v6
-      #   with: { version: 10 }
-      # - uses: actions/setup-node@v6
-      #   with: { node-version: 22, cache: pnpm }
-      #   # NOTE: only enable `cache: pnpm` in jobs that actually run
-      #   # `pnpm install` — otherwise the post-job cache step fails on
-      #   # the missing store path.
-      # - run: pnpm install --frozen-lockfile
-      # - run: pnpm test
-      #
-      # --- Go ---
-      # - uses: actions/setup-go@v5
-      #   with: { go-version: 'stable' }
-      # - run: go test ./...
-      - name: placeholder
-        run: echo "Add language-specific test steps — see comments above. This job currently passes trivially."
+      - uses: pnpm/action-setup@v6
+        with: { version: 10 }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm test
 
   audit:
     # Dependency-advisory gate, delegated to the reusable workflow in

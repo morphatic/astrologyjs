@@ -1,7 +1,7 @@
 name: Bug report
 description: Report a defect in shipped behavior — something that should work but doesn't.
-title: "[bug]: "
-labels: ["bug"]
+title: '[bug]: '
+labels: ['bug']
 body:
   - type: markdown
     attributes:
@@ -63,10 +63,10 @@ body:
       label: Will the fix change visible UI?
       description: Aesthetics is Morgan's call — visible deltas need surfacing for review before shipping.
       options:
-        - "Yes — note the visual delta in the description above"
-        - "No — backend / non-visible code only"
-        - "Unsure — implementer should flag"
-        - "N/A — this project has no UI"
+        - 'Yes — note the visual delta in the description above'
+        - 'No — backend / non-visible code only'
+        - 'Unsure — implementer should flag'
+        - 'N/A — this project has no UI'
     validations:
       required: true
 

@@ -1,7 +1,7 @@
 name: Enhancement / Feature
 description: Propose new behavior or improve existing behavior. Use this for product, UX, infra, and developer-experience improvements.
-title: "[enhancement]: "
-labels: ["enhancement"]
+title: '[enhancement]: '
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
@@ -55,10 +55,10 @@ body:
       label: Will this introduce or change visible UI?
       description: Aesthetics is Morgan's call. Flag visible deltas so the implementer surfaces them for review before shipping.
       options:
-        - "Yes — net-new UI surface"
-        - "Yes — change to existing UI surface"
-        - "No — backend / infra / docs only"
-        - "Unsure — implementer should flag"
+        - 'Yes — net-new UI surface'
+        - 'Yes — change to existing UI surface'
+        - 'No — backend / infra / docs only'
+        - 'Unsure — implementer should flag'
     validations:
       required: true
 

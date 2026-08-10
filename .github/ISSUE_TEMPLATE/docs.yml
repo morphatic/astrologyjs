@@ -1,7 +1,7 @@
 name: Documentation / Spec
 description: Report or propose a change to docs (CLAUDE.md, plinth/specs/*, plinth/planning/*, plinth/research/*, README, ADRs, etc.).
-title: "[docs]: "
-labels: ["documentation"]
+title: '[docs]: '
+labels: ['documentation']
 body:
   - type: markdown
     attributes:
@@ -44,9 +44,9 @@ body:
       description: |
         Does this change move a contract boundary? (Spec contracts under `plinth/specs/*.nlspec.md` are binding; rationale + research files are advisory.)
       options:
-        - "Yes — contract change (binding)"
-        - "No — rationale, research, or process documentation only"
-        - "Unsure — needs review"
+        - 'Yes — contract change (binding)'
+        - 'No — rationale, research, or process documentation only'
+        - 'Unsure — needs review'
     validations:
       required: true
 
