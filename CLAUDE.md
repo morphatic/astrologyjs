@@ -71,8 +71,75 @@ Rules (enforced by lefthook + CI, not just convention):
   Never use `--admin` to bypass.
 - **After merge, branches are auto-deleted** (repo setting).
 - **Releases go through release-please.** It reads Conventional Commits on `main` and maintains a
-  release PR; merging that PR tags the release. The manifest is seeded at `1.3.1`, so a `feat!`
-  commit produces `2.0.0`. Do not hand-edit `package.json` versions or `CHANGELOG.md`.
+  release PR; merging that PR tags the release and publishes it. See "Releasing and publishing".
+- **A breaking change must be marked in a commit that lands on `main`** — `feat!:` in the subject, or
+  a `BREAKING-CHANGE:` footer. Putting `!` only in a *pull request title* is not enough unless the PR
+  is squash-merged, because a merge commit preserves the branch's individual commit messages and
+  discards the PR title. This has already bitten once: see the note in "Releasing and publishing".
+
+## Releasing and publishing
+
+One workflow, `.github/workflows/publish.yml`, is the whole pipeline:
+
+1. Land Conventional Commits on `main` (the commit-msg hook already enforces the format).
+2. release-please maintains a release PR with the version bump and generated `CHANGELOG.md`.
+3. Merging that PR tags the release **and publishes to npm in the same run**.
+
+**Never publish from a laptop**, and never hand-edit `package.json` versions or `CHANGELOG.md`.
+
+Publishing uses **npm trusted publishing (OIDC)**. There is no `NPM_TOKEN`: npm authenticates the
+workflow itself against a trusted publisher configured on npmjs.com, so nothing expires, rotates, or
+leaks, and provenance attestations are attached automatically.
+
+Four things this depends on, all easy to break:
+
+- **The trusted publisher on npmjs.com** must name repository `morphatic/astrologyjs` and workflow
+  `publish.yml`, with `npm publish` ticked as an allowed action. **Renaming the workflow file breaks
+  releases.** Configurations created after 2026-05-20 require at least one allowed action, so
+  leaving that box untouched is a publish failure.
+- **Release and publish must stay in one workflow.** release-please creates the tag and release with
+  the default `GITHUB_TOKEN`, and GitHub does not start workflow runs from `GITHUB_TOKEN` events, so
+  a separate workflow on `push: tags` or `release: published` would never fire — silently, with no
+  red run. Keeping both jobs here lets publish gate on release-please's own `release_created`
+  output. Splitting them into a reusable workflow breaks it differently: npm validates the *calling*
+  workflow's filename, so the called file's name is never what is checked.
+- **The workflow upgrades npm before publishing**, because trusted publishing needs npm CLI ≥ 11.5.1
+  and Node 22 ships npm 10.x. Removing that step produces an `ENEEDAUTH` failure that reads like a
+  missing token.
+- **The publish step uses `npm publish`, not `pnpm publish`** — pnpm's OIDC support is unreliable
+  across majors ([pnpm#11513](https://github.com/pnpm/pnpm/issues/11513)). Install, typecheck, lint,
+  test, and build stay on pnpm.
+
+A version number is spent permanently once published — npm does not allow replacing one — so before
+the registry is touched the workflow runs the full gate, refuses outright if the version already
+exists, and smoke-tests the packed tarball by installing and importing it. That last check exists
+because 1.x's defining failure was a package that installed fine and did not work.
+
+`workflow_dispatch` is the recovery hatch if a release is tagged but the publish fails. It is safe to
+re-run: the republish guard makes it a no-op once the version is live.
+
+### Getting the version right
+
+release-please derives the version from commit messages, so the version is only as correct as the
+messages that reached `main`.
+
+**2.0.0 nearly shipped as 1.4.0.** PR #9 was titled `feat!: rebuild astrologyjs on the Morphemeris
+API`, but it was merged as a *merge commit*, so only the branch's own commits landed — all `feat:`
+and `fix:`, none marked breaking. release-please saw a minor bump and proposed 1.4.0 for a release
+that is ESM-only, changes `Aspect.orb` semantics, and removes `Planet.symbol` and the `Chart`
+constructor. Anyone on `^1.3.1` would have been upgraded into a rewrite without warning.
+
+The root cause is that `.github/setup-github.sh` has never been run, so squash-only merging is not
+enforced at the repo level. With squash merging the PR title becomes the commit subject and the `!`
+survives.
+
+Two habits that prevent a repeat:
+
+- **Read the version on the release PR before merging it.** That PR is the checkpoint, and the
+  proposed version is stated in its title and body. A wrong version there is free to fix; a wrong
+  version on npm is permanent.
+- To force a version regardless of what the commit history implies, land a commit on `main` whose
+  **body** contains `Release-As: x.y.z` (case-insensitive). That is what corrected this one.
 
 `.github/setup-github.sh --trunk-only` applies branch protection, merge strategy, labels, and
 default-branch settings. It has not been run yet on this repo.
