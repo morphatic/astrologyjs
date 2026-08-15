@@ -24,6 +24,19 @@ A major version is the cheapest moment to make this switch, and 2.0.0 already fo
 
 **Revisit when:** a real user reports a concrete break. tsup adds a `cjs` output in one config line, and the `exports` map gains a `require` condition. Do not preemptively add it on speculation.
 
+### Why TypeScript is pinned to 6.x, and exactly when to unpin
+
+TypeScript 7 is the native Go port and it works fine here. Measured on 2026-08-10 with `typescript@7.0.2` installed: `pnpm typecheck`, `pnpm build` (including `.d.ts` emission), and the full test suite all pass. The compiler is not the problem.
+
+What broke were two tools that embed the TypeScript compiler API:
+
+- **`typescript-eslint@8.66`** declares `typescript: >=4.8.4 <6.1.0` and refuses to load against 7 with *"typescript-eslint does not support TS 7.0."* Since the coding standards make `tseslint.configs.strictTypeChecked` the binding lint baseline, this one is disqualifying.
+- **`rollup-plugin-dts`** (via tsup's `dts: true`) declares `typescript: ^4.5 || ^5.0`, resolved a stale bundled compiler, and crashed on `useCaseSensitiveFileNames`.
+
+The second is already gone: declarations come from `tsc -p tsconfig.build.json` rather than tsup, which removed `rollup-plugin-dts` from the graph entirely and is a better arrangement regardless.
+
+**So exactly one blocker remains.** The pin lifts when `typescript-eslint` ships TS 7 support — nothing else in the toolchain needs to change, and the move is a single dependency bump. This is ordinary ecosystem lag behind a major compiler release, not a dead end, and it should not be allowed to become the status quo. Re-test by installing `typescript@7`, running `pnpm lint`, and unpinning if it passes.
+
 ### Why keep the domain model instead of rewriting from scratch?
 
 The aspect engine, the chart-type decomposition, the combined-chart midpoint math, and the geographic/temporal midpoint helpers are pure computation that does not care where the numbers came from. They encode real astrological content, and re-deriving them from scratch would risk losing detail that took domain knowledge to get right the first time.
