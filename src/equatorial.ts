@@ -2,12 +2,19 @@
  * Ecliptic-to-equatorial conversion.
  *
  * The library derives `declination` and `outOfBounds` here rather than reading
- * them from the API. As of 2026-08-10 the Morphemeris `/v1/chart` response
- * returns whatever occupies the `latitude` slot in its `declination` field —
- * ecliptic latitude, in the default ecliptic mode. Measured across 20 bodies
- * the error reached 23°, and the dependent `out_of_bounds` flag inverted.
- * Passing that through would be a plausible wrong number, which the contract's
- * governing principle forbids.
+ * them from the API.
+ *
+ * The original reason was a bug: through 2026-08-15 the Morphemeris
+ * `/v1/chart` response returned whatever occupied the `latitude` slot in its
+ * `declination` field — ecliptic latitude, in the default ecliptic mode —
+ * with errors reaching 23° across 20 bodies and the dependent `out_of_bounds`
+ * flag inverting. That is fixed upstream (morphemeris#83); all three of the
+ * API's declination paths now agree with this module.
+ *
+ * The derivation stays anyway, as §6.5 always said it would: it costs nothing,
+ * it is verified against an independent implementation, and it is one less
+ * thing to depend on. Reading the field back would trade a value this library
+ * can prove for one it would have to trust.
  *
  * See spec §6.5 and the rationale's "Why declination and out-of-bounds are
  * derived rather than read".
