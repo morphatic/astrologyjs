@@ -43,3 +43,6 @@ plinth/private/
 # --- added by gitignore-autoupdate ---
 node_modules/
 # --- end gitignore-autoupdate ---
+
+# Generated API reference (typedoc)
+docs/api/

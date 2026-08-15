@@ -31,7 +31,7 @@ export {
   UpstreamError,
   ValidationError,
 } from './errors.js';
-export type { InstantCandidate, UpstreamErrorDetail } from './errors.js';
+export type { AstrologyErrorOptions, InstantCandidate, UpstreamErrorDetail } from './errors.js';
 
 export { createPerson } from './person.js';
 export type { Person, PersonOptions, TimeInput } from './person.js';
@@ -65,6 +65,7 @@ export {
 } from './equatorial.js';
 
 export { geoMidpoint, instantMidpoint, longitudeMidpoint } from './midpoints.js';
+export type { LongitudeMidpoint } from './midpoints.js';
 
 export { defaultZoneResolver } from './time/zone.js';
 export type { GeoPoint } from './time/zone.js';
