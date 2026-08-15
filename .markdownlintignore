@@ -1,0 +1,8 @@
+# Generated files. release-please owns CHANGELOG.md and writes it in its own
+# style; docs/api is TypeDoc output. Linting either one asks a generator to
+# satisfy rules written for hand-authored prose, which it will never do and
+# which would block every release.
+CHANGELOG.md
+docs/api/
+node_modules/
+dist/

@@ -131,11 +131,11 @@ jobs:
 
       - name: cspell
         if: hashFiles('cspell.json') != ''
-        run: cspell --no-progress --no-summary "**/*" --exclude node_modules --exclude target --exclude dist
+        run: cspell --no-progress --no-summary "**/*" --exclude node_modules --exclude target --exclude dist --exclude docs/api --exclude CHANGELOG.md
 
       - name: markdownlint
         if: hashFiles('.markdownlint.json') != ''
-        run: markdownlint "**/*.md" --ignore node_modules --ignore target --ignore dist
+        run: markdownlint "**/*.md" --ignore node_modules --ignore target --ignore dist --ignore docs/api --ignore CHANGELOG.md
 
   test:
     name: test (node ${{ matrix.node }})
