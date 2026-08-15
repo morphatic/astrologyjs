@@ -14,8 +14,8 @@ Feature: Building a chart
     And the chart has an ascendant and a midheaven
 
   Scenario: Declination is computed, not copied from the response
-    # Upstream returns ecliptic latitude in the declination field
-    # (morphemeris#83), so the library derives both locally. See spec §6.5.
+    # Derived locally rather than read from the response, so this holds
+    # regardless of what upstream puts in that field. See spec §6.5.
     Given a birth at "1990-06-15T14:30" local time in Greenwich
     When a natal chart is built
     Then the Sun's ecliptic latitude is near zero

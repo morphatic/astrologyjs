@@ -600,14 +600,18 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 --   measurably at odds with the engine it is checked against.
 
 -- Invariant:
--- - The API's `declination` and `out_of_bounds` fields MUST NOT be used. As of
---   2026-08-10 the API returns the value of the `latitude` slot in the
---   `declination` field, which in the default ecliptic mode is ecliptic
---   latitude, not declination. Measured against 20 bodies the error reached 23°,
---   and the dependent `out_of_bounds` flag inverted: Pallas (ecliptic latitude
---   28.4°, true declination 6.1°) was flagged out of bounds while bodies
---   genuinely near the limit were not. Reading those fields would ship a
---   plausible wrong number, which §1.2 forbids.
+-- - The API's `declination` and `out_of_bounds` fields MUST NOT be used, even
+--   though they are correct as of 2026-08-15. The rule predates the fix and
+--   outlives it: a value the library computes is one it can verify, and the
+--   derivation costs nothing.
+-- - History, because it is the reason the rule exists. Through 2026-08-15 the
+--   API returned the value of the `latitude` slot in the `declination` field,
+--   which in the default ecliptic mode is ecliptic latitude, not declination.
+--   Measured against 20 bodies the error reached 23°, and the dependent
+--   `out_of_bounds` flag inverted: Pallas (ecliptic latitude 28.4°, true
+--   declination 6.1°) was flagged out of bounds while bodies genuinely near the
+--   limit were not. Fixed upstream in morphemeris#83; all three of the API's
+--   declination paths now agree with this library.
 -- - Local derivation was validated against the API's own `equatorial=true`
 --   output, which is correct, and agrees to within 0.1 arcsecond -- the stated
 --   accuracy of the abbreviated nutation series. Observed residuals are 0.004"
@@ -1005,7 +1009,7 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [x] `declination` is derived locally using true obliquity and agrees with the API's `equatorial=true` output to within 0.1 arcsecond
 - [x] `outOfBounds` is computed against the obliquity for the chart's own date
 - [x] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
-- [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance — **outstanding.** Five other oracles are in place (server-side `/v1/aspects`, `/v1/composite` and `/v1/davison`; the API's `equatorial=true` output; `temporal-polyfill`; the 1.x captured backend; `fast-check` properties), but none substitutes for a human reading charts against Astrodienst.
+- [x] Charts verified against Astrodienst — spot-checked by Morgan on 2026-08-15 against charts he knows, and the values agreed. This is the check the other five oracles could not stand in for: they establish that the geometry is self-consistent and that two implementations agree, not that the output is the chart an astrologer expects. Recorded as a spot check rather than a fixture-by-fixture sweep of §13.2, which is what was actually done.
 
 ### Time
 

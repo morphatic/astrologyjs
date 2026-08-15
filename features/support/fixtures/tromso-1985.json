@@ -9,7 +9,7 @@
       "sign": "sagittarius",
       "sign_degree": 29.146047104230945,
       "retrograde": false,
-      "declination": -0.0000450591697080163,
+      "declination": -23.440307836401335,
       "out_of_bounds": false
     },
     {
@@ -21,7 +21,7 @@
       "sign": "aries",
       "sign_degree": 21.28003316355734,
       "retrograde": false,
-      "declination": -1.4870996632792148,
+      "declination": 6.92253151386614,
       "out_of_bounds": false
     },
     {
@@ -33,7 +33,7 @@
       "sign": "sagittarius",
       "sign_degree": 8.18862981018259,
       "retrograde": false,
-      "declination": 1.7364041712744227,
+      "declination": -19.961391016195186,
       "out_of_bounds": false
     },
     {
@@ -45,7 +45,7 @@
       "sign": "sagittarius",
       "sign_degree": 22.06798666108358,
       "retrograde": false,
-      "declination": 0.10395421610026538,
+      "declination": -23.10176018769834,
       "out_of_bounds": false
     },
     {
@@ -57,7 +57,7 @@
       "sign": "scorpio",
       "sign_degree": 3.8774269949836935,
       "retrograde": false,
-      "declination": 1.0798642507991996,
+      "declination": -11.796230173249306,
       "out_of_bounds": false
     },
     {
@@ -69,7 +69,7 @@
       "sign": "aquarius",
       "sign_degree": 16.001287143517402,
       "retrograde": false,
-      "declination": -0.8050824076265056,
+      "declination": -16.811149803645854,
       "out_of_bounds": false
     },
     {
@@ -81,7 +81,7 @@
       "sign": "sagittarius",
       "sign_degree": 3.9781136367455474,
       "retrograde": false,
-      "declination": 1.7991892249822308,
+      "declination": -19.17930536278725,
       "out_of_bounds": false
     },
     {
@@ -93,7 +93,7 @@
       "sign": "sagittarius",
       "sign_degree": 18.852225044412194,
       "retrograde": false,
-      "declination": -0.05580038721754058,
+      "declination": -23.03066666087696,
       "out_of_bounds": false
     },
     {
@@ -105,7 +105,7 @@
       "sign": "capricorn",
       "sign_degree": 3.173594351626946,
       "retrograde": false,
-      "declination": 1.0638465512728272,
+      "declination": -22.34138219850598,
       "out_of_bounds": false
     },
     {
@@ -117,7 +117,7 @@
       "sign": "scorpio",
       "sign_degree": 6.63593699703722,
       "retrograde": false,
-      "declination": 16.273639630368272,
+      "declination": 1.6735793461289212,
       "out_of_bounds": false
     },
     {
@@ -129,7 +129,7 @@
       "sign": "taurus",
       "sign_degree": 8.02505246496468,
       "retrograde": false,
-      "declination": 0,
+      "declination": 14.185965086522485,
       "out_of_bounds": false
     },
     {
@@ -141,7 +141,7 @@
       "sign": "taurus",
       "sign_degree": 22.410789760579846,
       "retrograde": false,
-      "declination": 1.4228246551849655,
+      "declination": 19.75089314444081,
       "out_of_bounds": false
     },
     {
@@ -153,7 +153,7 @@
       "sign": "taurus",
       "sign_degree": 15.914322832376172,
       "retrograde": false,
-      "declination": 0.7085876362701187,
+      "declination": 17.282938424662955,
       "out_of_bounds": false
     },
     {
@@ -165,7 +165,7 @@
       "sign": "gemini",
       "sign_degree": 10.991846583439425,
       "retrograde": true,
-      "declination": -5.084581085181175,
+      "declination": 17.058796558712736,
       "out_of_bounds": false
     },
     {
@@ -177,8 +177,8 @@
       "sign": "taurus",
       "sign_degree": 1.3280011189042291,
       "retrograde": true,
-      "declination": -25.674912388497987,
-      "out_of_bounds": true
+      "declination": -12.18530799550145,
+      "out_of_bounds": false
     },
     {
       "body": "ceres",
@@ -189,7 +189,7 @@
       "sign": "virgo",
       "sign_degree": 13.435386741840745,
       "retrograde": false,
-      "declination": 11.26209086708318,
+      "declination": 16.882775654184975,
       "out_of_bounds": false
     },
     {
@@ -201,7 +201,7 @@
       "sign": "cancer",
       "sign_degree": 1.242018209018596,
       "retrograde": true,
-      "declination": -56.53493478056289,
+      "declination": -33.09543748785666,
       "out_of_bounds": true
     },
     {
@@ -213,7 +213,7 @@
       "sign": "scorpio",
       "sign_degree": 25.75690462251356,
       "retrograde": false,
-      "declination": 8.783310586137203,
+      "declination": -10.656727172407258,
       "out_of_bounds": false
     },
     {
@@ -225,7 +225,7 @@
       "sign": "capricorn",
       "sign_degree": 12.034772256306155,
       "retrograde": false,
-      "declination": -0.3419268186755222,
+      "declination": -23.23860550169265,
       "out_of_bounds": false
     }
   ],

@@ -58,9 +58,10 @@ live('against the live Morphemeris API', () => {
   });
 
   it('returns a declination that is not merely the ecliptic latitude', async () => {
-    // The upstream bug this library works around (morphemeris#83). If a future
-    // refactor started trusting the response field again, the Sun's declination
-    // would collapse to roughly zero and this would catch it.
+    // Guards the local derivation. If a future refactor started reading the
+    // response's `declination` field instead, and that field ever regresses to
+    // carrying ecliptic latitude as it did before morphemeris#83, the Sun's
+    // declination would collapse to roughly zero and this would catch it.
     const person = await createPerson('Subject A', { local: '1990-06-15T14:30' }, GREENWICH);
     const chart = await createChart('natal', person);
 
