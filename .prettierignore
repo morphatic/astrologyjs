@@ -7,7 +7,6 @@ pnpm-lock.yaml
 
 # 1.x source, kept as a reference to port critically (spec §13.1) and deleted
 # once the port is complete. Formatting it would create noise in the diff.
-legacy/
 
 # Markdown is governed by markdownlint (.markdownlint.json) and cspell, which
 # the lint-on-write hook runs. Letting Prettier reformat it too would give two

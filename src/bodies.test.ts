@@ -5,6 +5,8 @@ import {
   apiIdFor,
   bodyDefinition,
   derivedBodies,
+  isMajor,
+  isRetrograde,
   isSupportedBody,
   majorBodies,
   requestedApiIds,
@@ -134,5 +136,45 @@ describe('bodyDefinition', () => {
   it('is case-insensitive, since callers type body names by hand', () => {
     expect(bodyDefinition('SUN')?.name).toBe('sun');
     expect(bodyDefinition('North Node')?.name).toBe('north node');
+  });
+});
+
+describe('isRetrograde', () => {
+  // Spec §3.4 lists this as a behavior of Planet. 1.x had it too, and got it
+  // for free from a `speed` the adapter did not require — so a response
+  // missing speed made every body prograde. Here speed is mandatory (§9.2).
+  it('is true exactly when the body is moving backwards through the zodiac', () => {
+    expect(isRetrograde({ speed: -0.24 })).toBe(true);
+    expect(isRetrograde({ speed: 0.98 })).toBe(false);
+  });
+
+  it('treats a stationary body as direct rather than retrograde', () => {
+    // Exactly zero is a station, not retrograde motion. The boundary is worth
+    // pinning because `<= 0` reads just as natural as `< 0`.
+    expect(isRetrograde({ speed: 0 })).toBe(false);
+  });
+});
+
+describe('isMajor', () => {
+  it('covers the bodies a chart reading normally shows, nodes included', () => {
+    // The major set is Sun through Pluto *plus both nodes* (Appendix A) — it is
+    // "what a reading shows", not "what orbits the Sun".
+    expect(isMajor({ name: 'sun' })).toBe(true);
+    expect(isMajor({ name: 'pluto' })).toBe(true);
+    expect(isMajor({ name: 'north node' })).toBe(true);
+    expect(isMajor({ name: 'south node' })).toBe(true);
+    expect(isMajor({ name: 'chiron' })).toBe(false);
+    expect(isMajor({ name: 'lilith' })).toBe(false);
+    expect(isMajor({ name: 'ceres' })).toBe(false);
+  });
+
+  it('is false for a body the registry does not carry', () => {
+    expect(isMajor({ name: 'nibiru' })).toBe(false);
+  });
+
+  it('agrees with the registry, so the two cannot drift apart', () => {
+    for (const definition of BODY_REGISTRY) {
+      expect(isMajor({ name: definition.name }), definition.name).toBe(definition.major);
+    }
   });
 });

@@ -141,3 +141,27 @@ export function requestedApiIds(names: readonly string[], node: NodeChoice): str
   for (const name of names) addFor(name);
   return ids;
 }
+
+/**
+ * Whether a body is moving backwards through the zodiac.
+ *
+ * A behavior of `Planet` in spec §3.4, expressed as a function over the record
+ * rather than a method on it, because `Planet` is plain data — the adapter
+ * builds derived bodies by spreading their source, and methods do not survive
+ * a spread.
+ *
+ * A station (`speed === 0`) is direct, not retrograde.
+ */
+export function isRetrograde(body: { readonly speed: number }): boolean {
+  return body.speed < 0;
+}
+
+/**
+ * Whether a body is one of the classical set — Sun through Pluto.
+ *
+ * Reads the registry rather than a second list, so the two cannot drift apart
+ * when a body is added (§1.6). Unknown bodies are not major.
+ */
+export function isMajor(body: { readonly name: string }): boolean {
+  return bodyDefinition(body.name)?.major ?? false;
+}

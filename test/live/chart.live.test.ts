@@ -135,6 +135,56 @@ live('against the live Morphemeris API', () => {
     // Lahiri ayanamsha was roughly 23.7° in 1990.
     expect(shift).toBeGreaterThan(22);
     expect(shift).toBeLessThan(25);
+
+    // Signs are assigned locally from the returned longitude, so they must be
+    // right in the sidereal frame too — where they differ from the tropical
+    // ones for most bodies, which is the whole point of the frame.
+    for (const body of sidereal.planets) {
+      expect(body.sign, body.name).toBe(signOf(body.longitude));
+      expect(body.signDegree, body.name).toBeCloseTo(body.longitude % 30, 9);
+    }
+    // A ~23.7° shift moves most bodies back a sign, but not all of them — this
+    // chart's Sun is 24.19° Gemini tropical and still Gemini sidereal. So the
+    // claim worth asserting is that the frames genuinely differ somewhere, not
+    // that any particular body moves.
+    const moved = sidereal.planets.filter(
+      (body) => body.sign !== tropical.planets.find((t) => t.name === body.name)?.sign,
+    );
+    expect(moved.length).toBeGreaterThan(0);
+  });
+
+  it('builds every chart type against the live API', async () => {
+    const a = await createPerson('Subject A', { local: '1990-06-15T14:30' }, GREENWICH);
+    const b = await createPerson('Subject B', { local: '1985-12-21T03:00' }, TROMSO);
+    // Pinned so the run is reproducible and the transit ring is cacheable.
+    const transitsAt = '2024-03-15T12:00:00.000Z';
+
+    const cases = [
+      { type: ChartType.Basic, ring: false, second: false },
+      { type: ChartType.Transits, ring: true, second: false },
+      { type: ChartType.Synastry, ring: true, second: true },
+      { type: ChartType.Combined, ring: false, second: true },
+      { type: ChartType.Davison, ring: false, second: true },
+      { type: ChartType.CombinedTransits, ring: true, second: true },
+      { type: ChartType.DavisonTransits, ring: true, second: true },
+    ] as const;
+
+    for (const { type, ring, second } of cases) {
+      const chart = await createChart(type, a, {
+        type,
+        transitsAt,
+        ...(second ? { p2: b } : {}),
+      });
+
+      expect(chart.type, type).toBe(type);
+      expect(chart.planets.length, type).toBeGreaterThanOrEqual(19);
+      expect(chart.aspects.length, type).toBeGreaterThan(0);
+      expect(chart.transits === undefined, `${type} transit ring`).toBe(!ring);
+      for (const body of chart.planets) {
+        expect(body.longitude, `${type} ${body.name}`).toBeGreaterThanOrEqual(0);
+        expect(body.longitude, `${type} ${body.name}`).toBeLessThan(360);
+      }
+    }
   });
 
   it('surfaces a high-latitude house warning rather than silently substituting', async () => {

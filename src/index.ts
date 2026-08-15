@@ -47,6 +47,8 @@ export {
   allBodyNames,
   bodyDefinition,
   derivedBodies,
+  isMajor,
+  isRetrograde,
   isSupportedBody,
   majorBodies,
 } from './bodies.js';

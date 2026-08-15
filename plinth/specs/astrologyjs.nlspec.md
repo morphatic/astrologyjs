@@ -996,63 +996,63 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 
 ### Correctness
 
-- [ ] `Aspect.orb` returns the angular distance from exactness; a trine at 118.5° reports `1.5`
-- [ ] The closest in-range aspect type wins when several are in range
-- [ ] No aspect is produced between a derived body and its source body
-- [ ] "No aspect" returns an absent value; no code path throws for it
-- [ ] `sign` and `signDegree` are computed locally and are correct in both tropical and sidereal frames
-- [ ] South node derivation is exact: 180° opposed, latitude and declination negated
+- [x] `Aspect.orb` returns the angular distance from exactness; a trine at 118.5° reports `1.5`
+- [x] The closest in-range aspect type wins when several are in range
+- [x] No aspect is produced between a derived body and its source body
+- [x] "No aspect" returns an absent value; no code path throws for it
+- [x] `sign` and `signDegree` are computed locally and are correct in both tropical and sidereal frames
+- [x] South node derivation is exact: 180° opposed, latitude and declination negated
 - [x] `declination` is derived locally using true obliquity and agrees with the API's `equatorial=true` output to within 0.1 arcsecond
-- [ ] `outOfBounds` is computed against the obliquity for the chart's own date
-- [ ] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
-- [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance
+- [x] `outOfBounds` is computed against the obliquity for the chart's own date
+- [x] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
+- [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance — **outstanding.** Five other oracles are in place (server-side `/v1/aspects`, `/v1/composite` and `/v1/davison`; the API's `equatorial=true` output; `temporal-polyfill`; the 1.x captured backend; `fast-check` properties), but none substitutes for a human reading charts against Astrodienst.
 
 ### Time
 
-- [ ] A bare `Date` or bare string is rejected by `Person.create()`
-- [ ] An ambiguous local time throws `AmbiguousTimeError` carrying both candidate instants
-- [ ] A nonexistent local time throws `NonexistentTimeError` carrying the gap
-- [ ] `offsetMin` bypasses zone lookup entirely and cannot raise either error
-- [ ] `Person.zone` and `Person.utcOffsetMin` are populated and inspectable on every Person
-- [ ] Pre-standard-time, war-time, southern-hemisphere, 30-minute, and 45-minute zone fixtures pass
-- [ ] No code path consults the host's local timezone
+- [x] A bare `Date` or bare string is rejected by `Person.create()`
+- [x] An ambiguous local time throws `AmbiguousTimeError` carrying both candidate instants
+- [x] A nonexistent local time throws `NonexistentTimeError` carrying the gap
+- [x] `offsetMin` bypasses zone lookup entirely and cannot raise either error
+- [x] `Person.zone` and `Person.utcOffsetMin` are populated and inspectable on every Person
+- [x] Pre-standard-time, war-time, southern-hemisphere, 30-minute, and 45-minute zone fixtures pass
+- [x] No code path consults the host's local timezone
 
 ### Contract
 
-- [ ] Every chart type in §7.1 verified against the live API
-- [ ] Request count per chart type asserted by test
-- [ ] A repeated identical chart in one process issues zero additional requests
-- [ ] Two *concurrent* identical charts in one process issue one request, not two
-- [ ] A failed in-flight request is evicted from the cache and is retryable
-- [ ] `refreshTransits()` floors its instant to `transitGranularitySec`, and polling at 1 fps costs at most one credit per minute
-- [ ] Adding a body requires no type change, union member, or switch edit (§1.6)
-- [ ] Every requested body appears in the result or an error names the missing one
-- [ ] A position lacking `speed` throws `AdapterError`
-- [ ] `Chart.options` reports the frame the chart was computed in
-- [ ] `Chart` cannot be constructed from raw data through the public API
-- [ ] Adding a body requires only a registry entry
+- [x] Every chart type in §7.1 verified against the live API
+- [x] Request count per chart type asserted by test
+- [x] A repeated identical chart in one process issues zero additional requests
+- [x] Two *concurrent* identical charts in one process issue one request, not two
+- [x] A failed in-flight request is evicted from the cache and is retryable
+- [x] `refreshTransits()` floors its instant to `transitGranularitySec`, and polling at 1 fps costs at most one credit per minute
+- [x] Adding a body requires no type change, union member, or switch edit (§1.6)
+- [x] Every requested body appears in the result or an error names the missing one
+- [x] A position lacking `speed` throws `AdapterError`
+- [x] `Chart.options` reports the frame the chart was computed in
+- [x] `Chart` cannot be constructed from raw data through the public API
+- [x] Adding a body requires only a registry entry
 
 ### Safety
 
-- [ ] No credential anywhere in the repository; the 1.x Google key is gone from the working tree
-- [ ] No error, log, or stack trace contains an API key
-- [ ] A missing key throws before any network call
-- [ ] A non-JSON response produces `TransportError` naming the problem, never `Unexpected token <`
-- [ ] `InsufficientCreditsError` and `RateLimitError` are distinct classes
-- [ ] No catch block discards an error
+- [x] No credential anywhere in the repository; the 1.x Google key is gone from the working tree
+- [x] No error, log, or stack trace contains an API key
+- [x] A missing key throws before any network call
+- [x] A non-JSON response produces `TransportError` naming the problem, never `Unexpected token <`
+- [x] `InsufficientCreditsError` and `RateLimitError` are distinct classes
+- [x] No catch block discards an error
 
 ### Release
 
-- [ ] ESM-only; `type: module`, no `require` condition in exports
-- [ ] Full suite passes; `pnpm test` green
-- [ ] README, glyph tables, and generated API reference published
-- [ ] `2.0.0` published to npm via release-please
-- [ ] `1.3.2` published, whose error states both that the backend is gone and that 1.x results were unreliable
+- [x] ESM-only; `type: module`, no `require` condition in exports
+- [x] Full suite passes; `pnpm test` green
+- [x] README, glyph tables, and generated API reference published
+- [ ] `2.0.0` published to npm via release-please — **outstanding**, and deliberately outside the agent's remit.
+- [ ] `1.3.2` published, whose error states both that the backend is gone and that 1.x results were unreliable — **outstanding.** A separate branch off 1.x; not started.
 
 ### Integration
 
-- [ ] A developer with only a Morphemeris API key and a lat/lng produces a correct natal chart in one call, with no other configuration, in both Node and a browser bundle
-- [ ] The four open issues (#3, #4, #5, #7) each receive an individual reply and are closed
+- [ ] A developer with only a Morphemeris API key and a lat/lng produces a correct natal chart in one call, with no other configuration, in both Node and a browser bundle — **half done.** Verified end to end under Node (`test/live/chart.live.test.ts`). For the browser: the build carries no `node:` imports and bundles clean for `platform=browser`, and the only `process` reference is the guarded `globalThis.process` lookup, so a bundler cannot inline a key — but no chart has actually been cast in a browser.
+- [ ] The four open issues (#3, #4, #5, #7) each receive an individual reply and are closed — **outstanding**, and deliberately outside the agent's remit.
 
 ---
 
