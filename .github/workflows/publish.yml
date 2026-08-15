@@ -1,39 +1,35 @@
-name: Publish
+name: Release and publish
 
 # ─────────────────────────────────────────────────────────────────────
-# Publishes `astrologyjs` to npm via trusted publishing (OIDC). There is
-# no NPM_TOKEN: npm authenticates the workflow itself against a trusted
-# publisher configured on npmjs.com, so there is nothing to rotate,
-# expire, or leak. Provenance attestations are attached automatically.
+# The whole release pipeline, in one file: release-please proposes the
+# version bump and changelog, and merging its PR publishes to npm.
 #
-# WHY THIS TRIGGERS ON `push: main` RATHER THAN ON A TAG
+# Publishing uses npm trusted publishing (OIDC). There is no NPM_TOKEN —
+# npm authenticates this workflow against a trusted publisher configured
+# on npmjs.com, so nothing expires, rotates, or leaks, and provenance
+# attestations are attached automatically.
 #
-# `@morphemeris/mcp` publishes on `mcp-v*` tags, which works because a
-# human pushes those tags by hand. This repository uses release-please,
-# and release-please creates the tag and the GitHub release using the
-# default GITHUB_TOKEN. GitHub deliberately does not start new workflow
-# runs from events raised by GITHUB_TOKEN, so `on: push: tags` — and
-# equally `on: release: published` — would never fire here. The failure
-# mode is silent: no red run, just nothing happening on release day.
+# WHY ONE FILE
 #
-# Merging the release PR is a human action, so the resulting push to
-# `main` does trigger. This workflow therefore watches `main` and
-# publishes only when the version in package.json is not yet on the
-# registry, which makes it idempotent: ordinary pushes to `main` fall
-# straight through the guard, and re-running never double-publishes.
+# release-please creates the tag and the GitHub release using the default
+# GITHUB_TOKEN, and GitHub deliberately does not start new workflow runs
+# from GITHUB_TOKEN events. A separate publish workflow listening on
+# `push: tags` or `release: published` would therefore never fire, and
+# would fail silently — no red run, just nothing happening on release
+# day. Keeping both jobs here lets the publish depend on release-please's
+# own `release_created` output, which is a fact rather than an inference.
 #
-# The npm docs rule out the obvious alternative. A reusable workflow
-# called from release-please.yml would be validated against the CALLING
-# workflow's filename, so npm would see `release-please.yml` while the
-# trusted publisher names this file.
+# Splitting them back out would also break authentication: npm validates
+# the CALLING workflow's filename, so a reusable workflow invoked from
+# here would be checked against this file's name, not its own.
 #
-# SETUP REQUIRED ON NPMJS.COM, ONCE
+# SETUP ON NPMJS.COM, ONCE
 #
 #   Package:      astrologyjs
 #   Organization: morphatic
 #   Repository:   astrologyjs
 #   Workflow:     publish.yml      <- renaming this file breaks releases
-#   Environment:  (leave blank, unless the optional gate below is used)
+#   Environment:  (blank, unless the optional gate below is used)
 #   Allowed:      tick `npm publish`
 #
 # Configurations created after 2026-05-20 require at least one allowed
@@ -44,58 +40,55 @@ on:
   push:
     branches:
       - main
-  # Manual recovery: if a publish fails after the release was tagged, fix
+  # Recovery hatch: if a release was tagged but the publish failed, fix
   # forward and re-run this rather than publishing from a laptop.
   workflow_dispatch:
 
-# Never let two publishes race. Not cancel-in-progress: interrupting a
-# run mid-`npm publish` is exactly when partial state would be worst.
+# Never let two releases race. Not cancel-in-progress: interrupting a run
+# mid-`npm publish` is exactly when partial state would be worst.
 concurrency:
-  group: publish-npm
+  group: release-npm
   cancel-in-progress: false
 
 jobs:
-  check:
-    name: Is there a new version to publish?
+  release:
+    name: Maintain the release PR
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    # Forks must never publish, and never inherit this repo's identity.
+    timeout-minutes: 10
+    # Forks must never release or publish under this repo's identity.
     if: github.repository == 'morphatic/astrologyjs'
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
-      should-publish: ${{ steps.decide.outputs.should-publish }}
-      version: ${{ steps.decide.outputs.version }}
+      # Singular `release_created` is the root-component output. The
+      # plural `releases_created` is the across-all-packages one; for a
+      # single-package manifest they agree, but the singular is the
+      # documented gate and stays correct if this ever grows components.
+      release-created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      tag-name: ${{ steps.release.outputs.tag_name }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
 
-      - id: decide
-        name: Compare package.json against the registry
+      - name: Report what happened
         run: |
-          set -euo pipefail
-          VERSION="$(node -p "require('./package.json').version")"
-          NAME="$(node -p "require('./package.json').name")"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-          # `npm view` exits non-zero with E404 when the exact version is
-          # absent, which is the whole signal. Any other failure (registry
-          # down, network) must not be read as "not published" — that would
-          # turn an outage into a republish attempt — so the two cases are
-          # distinguished on the error text rather than on exit status.
-          if OUTPUT="$(npm view "$NAME@$VERSION" version 2>&1)"; then
-            echo "::notice::$NAME@$VERSION is already on the registry; nothing to do."
-            echo "should-publish=false" >> "$GITHUB_OUTPUT"
-          elif grep -qi "E404\|404 Not Found" <<< "$OUTPUT"; then
-            echo "::notice::$NAME@$VERSION is not on the registry; publishing."
-            echo "should-publish=true" >> "$GITHUB_OUTPUT"
+          if [ "${{ steps.release.outputs.release_created }}" = "true" ]; then
+            echo "::notice::Released ${{ steps.release.outputs.tag_name }} — publishing."
           else
-            echo "::error::Could not determine whether $NAME@$VERSION is published."
-            echo "$OUTPUT"
-            exit 1
+            echo "::notice::No release this run. Either the release PR was updated, or nothing releasable landed."
           fi
 
   publish:
     name: Publish to npm
-    needs: check
-    if: needs.check.outputs.should-publish == 'true'
+    needs: release
+    # The primary path is release-please saying it cut a release. The
+    # manual path exists for recovery and is guarded below on its own.
+    if: needs.release.outputs.release-created == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -104,10 +97,10 @@ jobs:
       # rights. Without it the publish falls back to looking for a token
       # and fails with ENEEDAUTH, which reads like a missing credential.
       id-token: write
-    # Optional approval gate. Create a `npm-publish` environment with
-    # required reviewers, uncomment, and add the same environment name to
-    # the trusted publisher on npmjs.com — it is matched, so setting it
-    # in only one of the two places fails the publish.
+    # Optional approval gate. Create an `npm-publish` environment with
+    # required reviewers, uncomment, and set the same environment name on
+    # the trusted publisher — npm matches it, so configuring it in only
+    # one of the two places fails the publish.
     # environment: npm-publish
     steps:
       - uses: actions/checkout@v7
@@ -129,13 +122,30 @@ jobs:
           npm install -g npm@latest
           echo "npm $(npm --version) (trusted publishing needs >= 11.5.1)"
 
+      # npm refuses to republish a version, so hitting that would fail at
+      # the very last step. Checking first turns it into a clear message,
+      # and makes a manual re-run safe rather than a coin flip.
+      - name: Refuse to republish a version that already exists
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          if OUTPUT="$(npm view "astrologyjs@$VERSION" version 2>&1)"; then
+            echo "::error::astrologyjs@$VERSION is already on the registry; a published version cannot be replaced. Land a new release instead."
+            exit 1
+          elif ! grep -qi "E404\|404 Not Found" <<< "$OUTPUT"; then
+            # An outage must not be mistaken for "not published".
+            echo "::error::Could not reach the registry to check astrologyjs@$VERSION."
+            echo "$OUTPUT"
+            exit 1
+          fi
+          echo "astrologyjs@$VERSION is unpublished; proceeding."
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       # The full gate, not a subset. This is the last point at which a
       # broken release can be stopped for free; after `npm publish` a
-      # version number is spent permanently, since npm does not allow
-      # re-publishing one.
+      # version number is spent permanently.
       - name: Type check
         run: pnpm typecheck
 
@@ -157,10 +167,10 @@ jobs:
           echo "Files that will be published:"
           npm pack --dry-run
 
-      # Installing the tarball the way a user would. The 1.x failure was
-      # a package that resolved but did not work, so "it built" is not
-      # the bar — an exports map or a `files` list can be wrong in ways
-      # nothing above this line would notice.
+      # Installing the tarball the way a user would. 1.x's defining
+      # failure was a package that resolved but did not work, so "it
+      # built" is not the bar — an exports map or a `files` list can be
+      # wrong in ways nothing above this line would notice.
       - name: Smoke-test the packed tarball
         run: |
           set -euo pipefail
@@ -189,9 +199,10 @@ jobs:
 
       - name: Summary
         run: |
+          VERSION="$(node -p "require('./package.json').version")"
           {
-            echo "### Published \`astrologyjs@${{ needs.check.outputs.version }}\`"
+            echo "### Published \`astrologyjs@$VERSION\`"
             echo
-            echo "- <https://www.npmjs.com/package/astrologyjs/v/${{ needs.check.outputs.version }}>"
+            echo "- <https://www.npmjs.com/package/astrologyjs/v/$VERSION>"
             echo "- Provenance attached automatically via trusted publishing (OIDC)."
           } >> "$GITHUB_STEP_SUMMARY"

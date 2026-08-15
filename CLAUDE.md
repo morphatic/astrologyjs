@@ -71,13 +71,18 @@ Rules (enforced by lefthook + CI, not just convention):
   Never use `--admin` to bypass.
 - **After merge, branches are auto-deleted** (repo setting).
 - **Releases go through release-please.** It reads Conventional Commits on `main` and maintains a
-  release PR; merging that PR tags the release. The manifest is seeded at `1.3.1`, so a `feat!`
-  commit produces `2.0.0`. Do not hand-edit `package.json` versions or `CHANGELOG.md`.
+  release PR; merging that PR tags the release and publishes it. The manifest is seeded at `1.3.1`,
+  so a `feat!` commit produces `2.0.0`. See "Releasing and publishing" below.
 
-## Publishing to npm
+## Releasing and publishing
 
-Releases publish themselves. Merging the release-please PR bumps the version on `main`, and
-`publish.yml` picks that up and publishes — **never publish from a laptop.**
+One workflow, `.github/workflows/publish.yml`, is the whole pipeline:
+
+1. Land Conventional Commits on `main` (the commit-msg hook already enforces the format).
+2. release-please maintains a release PR with the version bump and generated `CHANGELOG.md`.
+3. Merging that PR tags the release **and publishes to npm in the same run**.
+
+**Never publish from a laptop**, and never hand-edit `package.json` versions or `CHANGELOG.md`.
 
 Publishing uses **npm trusted publishing (OIDC)**. There is no `NPM_TOKEN`: npm authenticates the
 workflow itself against a trusted publisher configured on npmjs.com, so nothing expires, rotates, or
@@ -89,12 +94,12 @@ Four things this depends on, all easy to break:
   `publish.yml`, with `npm publish` ticked as an allowed action. **Renaming the workflow file breaks
   releases.** Configurations created after 2026-05-20 require at least one allowed action, so
   leaving that box untouched is a publish failure.
-- **`publish.yml` triggers on `push: main`, not on a tag** — unlike `@morphemeris/mcp`, which
-  publishes on hand-pushed `mcp-v*` tags. release-please creates this repo's tags and releases with
+- **Release and publish must stay in one workflow.** release-please creates the tag and release with
   the default `GITHUB_TOKEN`, and GitHub does not start workflow runs from `GITHUB_TOKEN` events, so
-  `on: push: tags` and `on: release: published` would both never fire. Merging the release PR is a
-  human action, so the push to `main` does. The workflow guards on "is this version already on the
-  registry", which makes ordinary pushes to `main` no-ops and re-runs safe.
+  a separate workflow on `push: tags` or `release: published` would never fire — silently, with no
+  red run. Keeping both jobs here lets publish gate on release-please's own `release_created`
+  output. Splitting them into a reusable workflow breaks it differently: npm validates the *calling*
+  workflow's filename, so the called file's name is never what is checked.
 - **The workflow upgrades npm before publishing**, because trusted publishing needs npm CLI ≥ 11.5.1
   and Node 22 ships npm 10.x. Removing that step produces an `ENEEDAUTH` failure that reads like a
   missing token.
@@ -102,14 +107,13 @@ Four things this depends on, all easy to break:
   across majors ([pnpm#11513](https://github.com/pnpm/pnpm/issues/11513)). Install, typecheck, lint,
   test, and build stay on pnpm.
 
-Do not convert `publish.yml` into a reusable workflow called from `release-please.yml`. npm
-validates the **calling** workflow's filename, so it would see `release-please.yml` and reject the
-publish.
+A version number is spent permanently once published — npm does not allow replacing one — so before
+the registry is touched the workflow runs the full gate, refuses outright if the version already
+exists, and smoke-tests the packed tarball by installing and importing it. That last check exists
+because 1.x's defining failure was a package that installed fine and did not work.
 
-A version number is spent permanently once published — npm does not allow re-publishing one — so the
-workflow runs the full gate plus a tarball smoke test (pack, install, import) before the registry is
-touched. That smoke test exists because 1.x's defining failure was a package that installed fine and
-did not work.
+`workflow_dispatch` is the recovery hatch if a release is tagged but the publish fails. It is safe to
+re-run: the republish guard makes it a no-op once the version is live.
 
 `.github/setup-github.sh --trunk-only` applies branch protection, merge strategy, labels, and
 default-branch settings. It has not been run yet on this repo.
