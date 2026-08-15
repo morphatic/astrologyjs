@@ -1,0 +1,247 @@
+{
+  "positions": [
+    {
+      "body": "sun",
+      "longitude": 269.14604710423095,
+      "latitude": -0.0000450591697080163,
+      "distance": 0.9837276036213076,
+      "speed": 1.0181870942132503,
+      "sign": "sagittarius",
+      "sign_degree": 29.146047104230945,
+      "retrograde": false,
+      "declination": -0.0000450591697080163,
+      "out_of_bounds": false
+    },
+    {
+      "body": "moon",
+      "longitude": 21.28003316355734,
+      "latitude": -1.4870996632792148,
+      "distance": 0.002694018707150529,
+      "speed": 11.8818393013422,
+      "sign": "aries",
+      "sign_degree": 21.28003316355734,
+      "retrograde": false,
+      "declination": -1.4870996632792148,
+      "out_of_bounds": false
+    },
+    {
+      "body": "mercury",
+      "longitude": 248.1886298101826,
+      "latitude": 1.7364041712744227,
+      "distance": 1.0954646165011515,
+      "speed": 1.2043282471027035,
+      "sign": "sagittarius",
+      "sign_degree": 8.18862981018259,
+      "retrograde": false,
+      "declination": 1.7364041712744227,
+      "out_of_bounds": false
+    },
+    {
+      "body": "venus",
+      "longitude": 262.0679866610836,
+      "latitude": 0.10395421610026538,
+      "distance": 1.6918956428396132,
+      "speed": 1.2582839825722534,
+      "sign": "sagittarius",
+      "sign_degree": 22.06798666108358,
+      "retrograde": false,
+      "declination": 0.10395421610026538,
+      "out_of_bounds": false
+    },
+    {
+      "body": "mars",
+      "longitude": 213.8774269949837,
+      "latitude": 1.0798642507991996,
+      "distance": 1.9931517944000705,
+      "speed": 0.6150397007179612,
+      "sign": "scorpio",
+      "sign_degree": 3.8774269949836935,
+      "retrograde": false,
+      "declination": 1.0798642507991996,
+      "out_of_bounds": false
+    },
+    {
+      "body": "jupiter",
+      "longitude": 316.0012871435174,
+      "latitude": -0.8050824076265056,
+      "distance": 5.660203501530844,
+      "speed": 0.19906189654931,
+      "sign": "aquarius",
+      "sign_degree": 16.001287143517402,
+      "retrograde": false,
+      "declination": -0.8050824076265056,
+      "out_of_bounds": false
+    },
+    {
+      "body": "saturn",
+      "longitude": 243.97811363674555,
+      "latitude": 1.7991892249822308,
+      "distance": 10.851084015265009,
+      "speed": 0.11152796844544623,
+      "sign": "sagittarius",
+      "sign_degree": 3.9781136367455474,
+      "retrograde": false,
+      "declination": 1.7991892249822308,
+      "out_of_bounds": false
+    },
+    {
+      "body": "uranus",
+      "longitude": 258.8522250444122,
+      "latitude": -0.05580038721754058,
+      "distance": 20.083239985799917,
+      "speed": 0.060300598068392885,
+      "sign": "sagittarius",
+      "sign_degree": 18.852225044412194,
+      "retrograde": false,
+      "declination": -0.05580038721754058,
+      "out_of_bounds": false
+    },
+    {
+      "body": "neptune",
+      "longitude": 273.17359435162695,
+      "latitude": 1.0638465512728272,
+      "distance": 31.23021116365357,
+      "speed": 0.03773726625883632,
+      "sign": "capricorn",
+      "sign_degree": 3.173594351626946,
+      "retrograde": false,
+      "declination": 1.0638465512728272,
+      "out_of_bounds": false
+    },
+    {
+      "body": "pluto",
+      "longitude": 216.63593699703722,
+      "latitude": 16.273639630368272,
+      "distance": 30.303337224819476,
+      "speed": 0.027838357320345432,
+      "sign": "scorpio",
+      "sign_degree": 6.63593699703722,
+      "retrograde": false,
+      "declination": 16.273639630368272,
+      "out_of_bounds": false
+    },
+    {
+      "body": "true_node",
+      "longitude": 38.02505246496468,
+      "latitude": 0,
+      "distance": 0.002709229653146863,
+      "speed": 0.02182045457200821,
+      "sign": "taurus",
+      "sign_degree": 8.02505246496468,
+      "retrograde": false,
+      "declination": 0,
+      "out_of_bounds": false
+    },
+    {
+      "body": "mean_apogee",
+      "longitude": 52.410789760579846,
+      "latitude": 1.4228246551849655,
+      "distance": 0.0027106251317225464,
+      "speed": 0.11083271723322241,
+      "sign": "taurus",
+      "sign_degree": 22.410789760579846,
+      "retrograde": false,
+      "declination": 1.4228246551849655,
+      "out_of_bounds": false
+    },
+    {
+      "body": "osc_apogee",
+      "longitude": 45.91432283237617,
+      "latitude": 0.7085876362701187,
+      "distance": 0.0027110365940643025,
+      "speed": 0.470170537846574,
+      "sign": "taurus",
+      "sign_degree": 15.914322832376172,
+      "retrograde": false,
+      "declination": 0.7085876362701187,
+      "out_of_bounds": false
+    },
+    {
+      "body": "chiron",
+      "longitude": 70.99184658343943,
+      "latitude": -5.084581085181175,
+      "distance": 13.101986921605251,
+      "speed": -0.05472524105642705,
+      "sign": "gemini",
+      "sign_degree": 10.991846583439425,
+      "retrograde": true,
+      "declination": -5.084581085181175,
+      "out_of_bounds": false
+    },
+    {
+      "body": "pholus",
+      "longitude": 31.32800111890423,
+      "latitude": -25.674912388497987,
+      "distance": 11.774852364751712,
+      "speed": -0.02308524903168514,
+      "sign": "taurus",
+      "sign_degree": 1.3280011189042291,
+      "retrograde": true,
+      "declination": -25.674912388497987,
+      "out_of_bounds": true
+    },
+    {
+      "body": "ceres",
+      "longitude": 163.43538674184074,
+      "latitude": 11.26209086708318,
+      "distance": 2.1100821642796745,
+      "speed": 0.1557789867788473,
+      "sign": "virgo",
+      "sign_degree": 13.435386741840745,
+      "retrograde": false,
+      "declination": 11.26209086708318,
+      "out_of_bounds": false
+    },
+    {
+      "body": "pallas",
+      "longitude": 91.2420182090186,
+      "latitude": -56.53493478056289,
+      "distance": 1.494772257467899,
+      "speed": -0.33448480299033073,
+      "sign": "cancer",
+      "sign_degree": 1.242018209018596,
+      "retrograde": true,
+      "declination": -56.53493478056289,
+      "out_of_bounds": true
+    },
+    {
+      "body": "juno",
+      "longitude": 235.75690462251356,
+      "latitude": 8.783310586137203,
+      "distance": 4.102314581236535,
+      "speed": 0.31752103708208285,
+      "sign": "scorpio",
+      "sign_degree": 25.75690462251356,
+      "retrograde": false,
+      "declination": 8.783310586137203,
+      "out_of_bounds": false
+    },
+    {
+      "body": "vesta",
+      "longitude": 282.03477225630616,
+      "latitude": -0.3419268186755222,
+      "distance": 3.1279011631404274,
+      "speed": 0.5318521695315783,
+      "sign": "capricorn",
+      "sign_degree": 12.034772256306155,
+      "retrograde": false,
+      "declination": -0.3419268186755222,
+      "out_of_bounds": false
+    }
+  ],
+  "houses": {
+    "system": "Placidus",
+    "cusps": [
+      204.043293954471, 241.39098212471757, 278.73867029496415, 316.0863584652107,
+      338.73867029496415, 1.3909821247175387, 24.043293954470982, 61.39098212471756,
+      98.73867029496414, 136.0863584652107, 158.73867029496415, 181.39098212471757
+    ],
+    "ascendant": 204.043293954471,
+    "midheaven": 136.0863584652107,
+    "armc": 138.54556226160685,
+    "vertex": 58.470589462397264,
+    "warnings": [
+      "HighLatitude { latitude_deg: 69.6492, requested_system: \"Placidus\", fallback_system: \"Porphyrius\" }"
+    ]
+  }
+}
