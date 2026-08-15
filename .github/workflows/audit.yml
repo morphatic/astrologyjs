@@ -1,0 +1,91 @@
+name: audit
+
+# Dependency-advisory gate. Advisories arrive on calendar time, not
+# commit time, so this is a reusable workflow with two entry points
+# (pattern ported from heliotrek issue #206):
+#
+#   - workflow_call from ci.yml — runs on the merge path, but only
+#     for PRs/pushes that touch dependency manifests or lockfiles
+#     (the `deps` path filter in ci.yml). Those are the only changes
+#     that can alter the dependency graph.
+#   - Daily schedule against the default branch — catches newly
+#     published advisories even when no code is moving. Heliotrek
+#     returned from a two-month idle gap to 11 accumulated high CVEs;
+#     a daily run surfaces them the morning they ship instead. A
+#     scheduled failure emails the repo owner via GitHub's default
+#     workflow-failure notification.
+#
+# workflow_dispatch is for ad-hoc runs from the Actions tab.
+#
+# Each ecosystem's steps are gated on its lockfile existing, so this
+# workflow is a no-op on a freshly scaffolded project and picks up
+# ecosystems automatically as /bootstrap-<lang> commands add them.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    # 05:00 UTC daily; ci.yml's weekly full-matrix run is offset to
+    # 05:30 so the two never contend for the concurrency group.
+    - cron: '0 5 * * *'
+
+jobs:
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # --- npm/pnpm ----------------------------------------------------
+      # No `cache: pnpm` and no `pnpm install`: `pnpm audit` reads
+      # pnpm-lock.yaml and queries the registry's advisory endpoint —
+      # it does not need node_modules.
+      - uses: pnpm/action-setup@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        if: hashFiles('pnpm-lock.yaml') != ''
+        with:
+          node-version: 22
+
+      - name: pnpm audit (high+critical)
+        # High + critical fail the build; lower severities surface as
+        # warnings so we don't churn on transitive dev-dep issues that
+        # aren't reachable.
+        if: hashFiles('pnpm-lock.yaml') != ''
+        run: pnpm audit --audit-level high
+
+      # --- Rust --------------------------------------------------------
+      - uses: dtolnay/rust-toolchain@stable
+        if: hashFiles('Cargo.lock') != ''
+
+      # taiki-e/install-action ships precompiled binaries so cargo-audit
+      # doesn't need a 3-min `cargo install` build on every run.
+      - uses: taiki-e/install-action@v2
+        if: hashFiles('Cargo.lock') != ''
+        with:
+          tool: cargo-audit
+
+      - name: cargo audit
+        # Default failure mode is "any vulnerability" — yanked /
+        # unmaintained advisories surface as warnings without failing
+        # the build. Tighten with `--deny warnings` to gate on those too.
+        if: hashFiles('Cargo.lock') != ''
+        run: cargo audit
+
+      # --- Python (uv) ---------------------------------------------------
+      # Uncomment when a Python stack lands (pip-audit reads the
+      # environment, so it needs the sync first):
+      # - uses: astral-sh/setup-uv@v9
+      #   if: hashFiles('uv.lock') != ''
+      # - run: uv sync
+      #   if: hashFiles('uv.lock') != ''
+      # - run: uv run --with pip-audit pip-audit
+      #   if: hashFiles('uv.lock') != ''
+
+      - name: No auditable lockfiles present
+        if: hashFiles('pnpm-lock.yaml') == '' && hashFiles('Cargo.lock') == '' && hashFiles('uv.lock') == ''
+        run: echo "No lockfiles found — nothing to audit yet. This job activates automatically once a stack lands a lockfile."

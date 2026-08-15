@@ -1,0 +1,15 @@
+dist/
+node_modules/
+docs/
+coverage/
+pnpm-lock.yaml
+.features-gen/
+
+# 1.x source, kept as a reference to port critically (spec §13.1) and deleted
+# once the port is complete. Formatting it would create noise in the diff.
+
+# Markdown is governed by markdownlint (.markdownlint.json) and cspell, which
+# the lint-on-write hook runs. Letting Prettier reformat it too would give two
+# tools authority over the same files — and Prettier renormalizes the tables and
+# pseudo-code alignment the NLSpec relies on for readability.
+*.md

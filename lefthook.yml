@@ -1,0 +1,26 @@
+# lefthook config for Morgan's standard project workflow.
+# Docs: https://lefthook.dev/
+#
+# Install lefthook (once per machine):  pnpm add -g lefthook
+# Activate in a repo (once):            lefthook install
+# The scaffold runs `lefthook install` automatically on `new-project`.
+#
+# Bypass a hook for a single commit (use sparingly, prefer fixing the cause):
+#   LEFTHOOK=0 git commit ...
+#   git commit --no-verify ...
+
+pre-commit:
+  parallel: true
+  commands:
+    no-commit-on-protected:
+      run: .github/hooks/no-commit-on-protected.sh
+
+commit-msg:
+  commands:
+    conventional-commits:
+      run: .github/hooks/conventional-commits.sh {1}
+
+pre-push:
+  commands:
+    no-push-to-protected:
+      run: .github/hooks/no-push-to-protected.sh

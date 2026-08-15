@@ -1,10 +1,48 @@
-logs
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Secrets
+.env
+.env.local
+.env.*.local
+secrets/
+*.pem
+*.key
+
+# Logs
 *.log
-npm-debug.log*
-node_modules
-typings
-spec
-coverage
-.DS_store
-.github_changelog_generator
-src/js
+logs/
+
+# Build artifacts (generic)
+dist/
+build/
+out/
+target/
+*.tmp
+*.cache
+
+# Claude local state (commit settings.json and commands/, ignore caches/logs)
+.claude/caches/
+.claude/*.log
+
+# Strategy, positioning, and planning docs — deliberately untracked (public repo)
+plinth/private/
+
+# --- added by gitignore-autoupdate ---
+node_modules/
+# --- end gitignore-autoupdate ---
+
+# Generated API reference (typedoc)
+docs/api/

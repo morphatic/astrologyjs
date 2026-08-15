@@ -1,155 +1,148 @@
-import { default as rp } from "./rp";
-
-interface GoogleAddressComponent {
-    long_name: string;
-    short_name: string;
-    types: Array<string>;
-}
-
-export interface GoogleLocation {
-    lat: number;
-    lng: number;
-}
-
-export type Point = GoogleLocation;
-
-interface GoogleViewport {
-    northeast: GoogleLocation;
-    southwest: GoogleLocation;
-}
-
-interface GoogleGeocode {
-    address_components: Array<GoogleAddressComponent>;
-    formatted_address: string;
-    geometry: {
-        location: GoogleLocation;
-        location_type: string;
-        viewport: GoogleViewport;
-        bounds?: GoogleViewport
-    };
-    place_id: string;
-    types: Array<string>;
-    partial_match?: boolean;
-    postcode_localities?: Array<string>;
-}
-
-interface GoogleGeocodeResult {
-    results: Array<GoogleGeocode>;
-    status: string;
-    error_message?: string;
-}
-
-interface GoogleTimezoneResult {
-   status: string;
-   dstOffset?: number;
-   rawOffset?: number;
-   timeZoneId?: string;
-   timeZoneName?: string;
-   errorMessage?: string;
-}
-
+/**
+ * A person or event: a name, a moment, and a place.
+ *
+ * The whole point of this module is that `instant` is never ambiguous and every
+ * assumption behind it is inspectable. 1.x accepted a `Date`, which silently
+ * imported the host process's timezone — the same source code produced a
+ * different chart on a laptop than in a UTC container, with no error either
+ * time. See spec §5.
+ */
+import { getConfig, type Geocoder, type ZoneResolver } from './config.js';
+import { ConfigurationError, ValidationError } from './errors.js';
+import { parseLocalWallClock, resolveInstant } from './time/resolve.js';
+import { resolveZone, type GeoPoint } from './time/zone.js';
 
 /**
- * Represents a person or event for whom a chart will be created
+ * How the moment is supplied. Exactly one form.
+ *
+ * There is deliberately no way to pass a `Date` or a bare date-time string:
+ * both carry an implicit zone, and every chart cast from one is a coin flip.
  */
-export class Person {
+export type TimeInput =
+  /** An unambiguous UTC instant. */
+  | { readonly utc: string }
+  /**
+   * A local wall clock at the place. `offsetMinutes`, when given, is
+   * authoritative — no zone lookup happens and no ambiguity can arise. It is
+   * how a caller answers an `AmbiguousTimeError`.
+   */
+  | { readonly local: string; readonly offsetMinutes?: number | undefined }
+  /**
+   * The date is known but the time is not — very common in real birth data.
+   *
+   * Resolves against noon local at the place. Whether the time-dependent angles
+   * are returned at all is governed by `ChartOptions.unknownTime` (§5.3), which
+   * defaults to omitting them.
+   */
+  | { readonly date: string; readonly timeUnknown: true };
 
-    /**
-     * Google API key
-     * @type {string}
-     */
-    private static _key: string = "AIzaSyAXnIdQxap1WQuzG0XxHfYlCA5O9GQyvuY";
+export interface PersonOptions {
+  /** An explicit IANA zone, bypassing coordinate lookup entirely. */
+  readonly zone?: string | undefined;
+  readonly zoneResolver?: ZoneResolver | undefined;
+  readonly geocoder?: Geocoder | undefined;
+}
 
-    /**
-     * Creates a Person object
-     * @param {string} public name Name of the person or event
-     * @param {string} public date UTC date in ISO 8601 format, i.e. YYYY-MM-DDTHH:mmZ (caller must convert to UTC)
-     * @param {Point} location The [lat: number, lon: number] of the event or person's birthplace
-     */
-    constructor(public name: string, public date: string, public location: Point) {}
+export interface Person {
+  readonly name: string;
+  readonly location: GeoPoint;
+  /** Resolved UTC instant. Always present. */
+  readonly instant: string;
+  /** Resolved IANA zone. Always present. */
+  readonly zone: string;
+  /**
+   * The offset applied, in minutes east of UTC. Inspectable so a caller can
+   * audit what the library assumed — the single most useful auditable value
+   * here, and may be fractional for local mean time.
+   */
+  readonly utcOffsetMinutes: number;
+  /** False when the caller said the time was unknown. */
+  readonly timeKnown: boolean;
+  /** True when the built-in resolver supplied the zone rather than the caller. */
+  readonly zoneFromDefaultResolver: boolean;
+}
 
-    /**
-     * Asynchronous factory function for creating people or events
-     * @param  {string}          name     Name of the person or event
-     * @param  {Date | string}   date     Exact datetime for the chart, preferably UTC date in ISO 8601 format, i.e. YYYY-MM-DDTHH:mmZ (caller must convert to UTC)
-     * @param  {Point | string}  location Either an address or a lat/lng combination
-     * @return {Promise<Person>}          The Person object that was created
-     */
-    static async create(name: string, date: Date | string, location: Point | string): Promise<Person> {
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/u;
 
-        let dt: string,
-            loc: Point;
+async function resolveLocation(
+  place: GeoPoint | string,
+  options: PersonOptions,
+): Promise<GeoPoint> {
+  if (typeof place !== 'string') return place;
 
-        // make sure a name was submitted
-        if (!name) {
-            throw new Error("No name was submitted for the person");
-        }
+  const geocoder = options.geocoder ?? getConfig().geocoder;
+  if (geocoder === undefined) {
+    throw new ConfigurationError(
+      `A place was given as text (${JSON.stringify(place)}) but no geocoder is configured. ` +
+        'Pass { geocoder } here or via configure({ geocoder }), or supply { lat, lng } ' +
+        'directly. The library ships no default geocoder and needs no Google Maps key.',
+    );
+  }
+  return geocoder(place);
+}
 
-        // deal with the type of date submitted
-        if (typeof date === "string") {
-            if (!/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}\.\d{3})?Z/.test(date)) {
-                throw new TypeError("Date not formatted according to ISO 8601 (YYYY-MM-DDTHH:mmZ)");
-            }
-            dt = date;
-        }
-        else if (date instanceof Date) {
-            dt = date.toISOString();
-        }
-        else {
-            // defaults to "now"
-            dt = new Date().toISOString();
-        }
+/**
+ * Creates a {@link Person}, resolving the zone and the instant.
+ *
+ * @throws AmbiguousTimeError when a local time occurs twice. The error carries
+ * both candidate instants; re-call with `offsetMinutes` to choose.
+ * @throws NonexistentTimeError when a local time never occurred.
+ */
+export async function createPerson(
+  name: string,
+  time: TimeInput,
+  place: GeoPoint | string,
+  options: PersonOptions = {},
+): Promise<Person> {
+  if (name.trim() === '') {
+    throw new ValidationError('A person or event must have a name.');
+  }
 
-        // deal with the type of location submitted
-        if (typeof location === "string") {
-            loc = await this.getLatLon(location);
-        } else {
-            // make sure latitude was valid
-            if (location.lat < -90 || location.lat > 90) {
-                throw new RangeError("Latitude must be between -90 and 90");
-            }
-            // make sure longitude was valid
-            if (location.lng < -180 || location.lng > 180) {
-                throw new RangeError("Longitude must be between -180 and 180");
-            }
-            loc = location;
-        }
+  const location = await resolveLocation(place, options);
+  const config = getConfig();
+  const { zone, fromDefaultResolver } = resolveZone(location, {
+    zone: options.zone,
+    zoneResolver: options.zoneResolver ?? config.zoneResolver,
+  });
 
-        return new Person(name, dt, loc);
+  const base = { name, location, zone, zoneFromDefaultResolver: fromDefaultResolver };
+
+  if ('utc' in time) {
+    const parsed = Date.parse(time.utc);
+    if (Number.isNaN(parsed)) {
+      throw new ValidationError(`Not a valid UTC instant: ${JSON.stringify(time.utc)}`);
     }
+    return {
+      ...base,
+      instant: new Date(parsed).toISOString(),
+      utcOffsetMinutes: 0,
+      timeKnown: true,
+    };
+  }
 
-    /**
-     * Gets a timezone given a latitude and longitude
-     * @param {Point} p  Contains the latitude and longitude in decimal format
-     */
-    static async getTimezone(p: Point): Promise<string> {
-        return await rp({
-            uri: "https://maps.googleapis.com/maps/api/timezone/json",
-            qs: {
-                key: this._key,
-                location: `${p.lat},${p.lng}`,
-                timestamp: Math.floor(Date.now() / 1000)
-            }
-        }).then(
-            (tzinfo: GoogleTimezoneResult): string => tzinfo.timeZoneId,
-            (error:  GoogleTimezoneResult): any => { throw Error(error.errorMessage); }
-        );
+  if ('timeUnknown' in time) {
+    if (!DATE_ONLY.test(time.date.trim())) {
+      throw new ValidationError(
+        `An unknown-time person still needs a date as YYYY-MM-DD; received ` +
+          `${JSON.stringify(time.date)}.`,
+      );
     }
+    // Noon local at the birthplace. Both unknownTime modes share this instant;
+    // the mode decides only whether the angles are returned (§5.3).
+    const resolved = resolveInstant(parseLocalWallClock(`${time.date.trim()}T12:00`), zone);
+    return {
+      ...base,
+      instant: resolved.instant,
+      utcOffsetMinutes: resolved.offsetMinutes,
+      timeKnown: false,
+    };
+  }
 
-    /**
-     * Get a latitude and longitude given an address
-     * @param {string} address The address of the desired lat/lon
-     */
-    static async getLatLon(address: string): Promise<Point> {
-        return await rp({
-            uri: "https://maps.googleapis.com/maps/api/geocode/json",
-            qs: {
-                key: this._key,
-                address: address
-            }
-        }).then(
-            (latlng: GoogleGeocodeResult): Point => latlng.results[0].geometry.location,
-            (error:  GoogleGeocodeResult): Point => { throw Error(error.error_message); }
-        );
-    }
+  const resolved = resolveInstant(parseLocalWallClock(time.local), zone, time.offsetMinutes);
+  return {
+    ...base,
+    instant: resolved.instant,
+    utcOffsetMinutes: resolved.offsetMinutes,
+    timeKnown: true,
+  };
 }

@@ -1,0 +1,203 @@
+name: CI
+
+# All node-based actions pinned to major versions that run on Node 22+ runtime.
+# If you ever downgrade an action, verify its action.yml doesn't request node20.
+#
+# Compute-budget architecture (ported from heliotrek issue #206): the
+# `changes` job path-filters every downstream job, so a push only runs
+# the jobs whose inputs could have changed. Heliotrek measured ~3,000
+# billable minutes in five active days with every job running on every
+# push — most of it on jobs whose inputs hadn't changed. Two guardrails
+# keep the filtering honest:
+#
+#   1. The weekly `schedule` + `workflow_dispatch` triggers force the
+#      full matrix, catching filter blind spots and environment drift
+#      during idle stretches.
+#   2. Every job carries `timeout-minutes` well above its observed
+#      worst case, so a hung run is capped at minutes instead of the
+#      6-hour GitHub default (a hung e2e run once billed 81 minutes
+#      before anyone noticed).
+#
+# The dependency-advisory job lives in audit.yml (reusable workflow):
+# called from here on dependency-graph changes, and self-scheduled
+# daily so new advisories surface even when no code is moving.
+#
+# Per-language jobs are added by the /bootstrap-<lang> commands. When
+# you add a job: (1) give it its own filter key in the `changes` job,
+# (2) gate it with `if: needs.changes.outputs.<key> == 'true'`,
+# (3) append it to the aggregate `ci` job's `needs:` list, and
+# (4) set `timeout-minutes` from its observed worst case.
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+  schedule:
+    # Weekly full-matrix run on the default branch, Mondays 05:30 UTC —
+    # offset from audit.yml's daily 05:00 run so the two never contend.
+    - cron: '30 5 * * 1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    # Path filter feeding every downstream job's `if:`. On schedule and
+    # workflow_dispatch events all outputs are forced true (full
+    # matrix). `lint` is the one job that always runs — docs-only
+    # changes still get markdownlint + cspell.
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || steps.filter.outputs.code == 'true' }}
+      deps: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || steps.filter.outputs.deps == 'true' }}
+    steps:
+      # Checkout is required for diffing on push events; pull_request
+      # events use the GitHub API and don't need it, but it's ~5 s.
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        with:
+          # On push events, diff against the commit before the push
+          # (base = the pushed branch itself). Ignored on pull_request
+          # events, which always diff against the PR base branch.
+          base: ${{ github.ref_name }}
+          # The `code` filter starts broad (a fresh project's layout is
+          # unknown). When /bootstrap-<lang> lands the real layout,
+          # replace it with per-language keys (e.g. `rust: crates/**`,
+          # `web: apps/web/**`) and gate each job on its own key.
+          # Always include ci.yml itself in every filter — a workflow
+          # edit must re-run everything it touches.
+          filters: |
+            code:
+              - 'src/**'
+              - 'lib/**'
+              - 'apps/**'
+              - 'crates/**'
+              - 'packages/**'
+              - 'features/**'
+              - 'tests/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - 'go.mod'
+              - 'go.sum'
+              - '.github/workflows/ci.yml'
+            deps:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - '**/Cargo.toml'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - 'go.mod'
+              - 'go.sum'
+              - '.github/workflows/audit.yml'
+              - '.github/workflows/ci.yml'
+
+  lint:
+    # Always runs (no path gate): docs-only changes still get linted,
+    # and the job is cheap (~1 min).
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install linters
+        run: pnpm add -g cspell markdownlint-cli
+
+      - name: cspell
+        if: hashFiles('cspell.json') != ''
+        run: cspell --no-progress --no-summary "**/*" --exclude node_modules --exclude target --exclude dist
+
+      - name: markdownlint
+        if: hashFiles('.markdownlint.json') != ''
+        run: markdownlint "**/*.md" --ignore node_modules --ignore target --ignore dist
+
+  test:
+    name: test (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    # Generous hung-run cap; tighten to ~2x the observed worst case
+    # once the suite has a track record.
+    timeout-minutes: 30
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        # 20 is the `engines` floor (require(esm) landed in 20.19); the
+        # others are current. A library that declares a floor must test it.
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with: { version: 10 }
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm test:unit
+      # @cucumber/cucumber@13 requires Node 22+, but the library's `engines`
+      # floor is 20.19 and the unit suite must keep covering it. The BDD runner
+      # is a dev tool, not a runtime constraint, so it runs where it can.
+      - run: pnpm test:bdd
+        if: matrix.node != '20'
+
+  audit:
+    # Dependency-advisory gate, delegated to the reusable workflow in
+    # audit.yml (which also self-schedules daily — see its header for
+    # the full rationale). Called here only when the dependency graph
+    # itself can change, so the advisory check stays on the merge path
+    # for exactly the PRs that need it.
+    name: audit
+    needs: changes
+    if: needs.changes.outputs.deps == 'true'
+    uses: ./.github/workflows/audit.yml
+
+  ci:
+    # Aggregate gate. Configure branch protection to require THIS check only —
+    # individual jobs can be renamed or added without updating protection rules.
+    name: CI (required check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [changes, lint, test, audit]
+    if: ${{ always() }}
+    steps:
+      - name: Verify all required jobs passed or were skipped
+        run: |
+          # The `needs` context is a JSON object of {job: {result, outputs}}.
+          # Path-filtered jobs legitimately report `skipped`; that passes
+          # the gate. `failure` and `cancelled` fail it.
+          echo '${{ toJson(needs) }}' | jq -e 'to_entries | all(.value.result == "success" or .value.result == "skipped")' \
+            || (echo "One or more required jobs failed:" \
+                && echo '${{ toJson(needs) }}' | jq 'to_entries | map({job: .key, result: .value.result})' \
+                && exit 1)
+          echo "All required checks passed."

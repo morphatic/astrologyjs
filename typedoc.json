@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "name": "astrologyjs",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "navigationLinks": {
+    "Glyphs": "https://github.com/morphatic/astrologyjs/blob/main/docs/glyphs.md",
+    "GitHub": "https://github.com/morphatic/astrologyjs"
+  },
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  }
+}
