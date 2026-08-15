@@ -600,14 +600,18 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 --   measurably at odds with the engine it is checked against.
 
 -- Invariant:
--- - The API's `declination` and `out_of_bounds` fields MUST NOT be used. As of
---   2026-08-10 the API returns the value of the `latitude` slot in the
---   `declination` field, which in the default ecliptic mode is ecliptic
---   latitude, not declination. Measured against 20 bodies the error reached 23°,
---   and the dependent `out_of_bounds` flag inverted: Pallas (ecliptic latitude
---   28.4°, true declination 6.1°) was flagged out of bounds while bodies
---   genuinely near the limit were not. Reading those fields would ship a
---   plausible wrong number, which §1.2 forbids.
+-- - The API's `declination` and `out_of_bounds` fields MUST NOT be used, even
+--   though they are correct as of 2026-08-15. The rule predates the fix and
+--   outlives it: a value the library computes is one it can verify, and the
+--   derivation costs nothing.
+-- - History, because it is the reason the rule exists. Through 2026-08-15 the
+--   API returned the value of the `latitude` slot in the `declination` field,
+--   which in the default ecliptic mode is ecliptic latitude, not declination.
+--   Measured against 20 bodies the error reached 23°, and the dependent
+--   `out_of_bounds` flag inverted: Pallas (ecliptic latitude 28.4°, true
+--   declination 6.1°) was flagged out of bounds while bodies genuinely near the
+--   limit were not. Fixed upstream in morphemeris#83; all three of the API's
+--   declination paths now agree with this library.
 -- - Local derivation was validated against the API's own `equatorial=true`
 --   output, which is correct, and agrees to within 0.1 arcsecond -- the stated
 --   accuracy of the abbreviated nutation series. Observed residuals are 0.004"

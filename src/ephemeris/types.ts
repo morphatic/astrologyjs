@@ -6,7 +6,9 @@
  *
  * Note what is deliberately marked optional-and-ignored: `sign`, `sign_degree`,
  * `declination`, and `out_of_bounds` all arrive on the wire and none is read.
- * The first two are tropical-only; the last two are upstream-wrong (§6.5).
+ * The first two are tropical-only. The last two were upstream-wrong when this
+ * was written and are correct now (morphemeris#83), but the library still
+ * derives them, because a value it computes is one it can prove (§6.5).
  */
 
 export interface WireBodyPosition {
@@ -22,9 +24,9 @@ export interface WireBodyPosition {
   sign_degree?: number | undefined;
   /** Present on the wire; ignored. Derived from speed instead. */
   readonly retrograde?: boolean | undefined;
-  /** Present on the wire; **ignored and wrong** — see §6.5. */
+  /** Present on the wire; ignored. Derived locally instead — see §6.5. */
   declination?: number | undefined;
-  /** Present on the wire; **ignored and wrong** — depends on `declination`. */
+  /** Present on the wire; ignored. Derived locally instead — see §6.5. */
   readonly out_of_bounds?: boolean | undefined;
 }
 

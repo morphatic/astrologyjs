@@ -32,6 +32,21 @@ export interface ChartPosition {
   readonly declination: number;
 }
 
+/**
+ * The equatorial-mode shape, which is genuinely different.
+ *
+ * Before morphemeris#83 this response reused the `longitude`/`latitude` field
+ * names from ecliptic mode, so one interface covered both. It now uses the
+ * `right_ascension`/`declination` names its own spec defines, which is the
+ * correct behavior and means the two shapes need separate types.
+ */
+export interface EquatorialPosition {
+  readonly body: string;
+  readonly right_ascension: number;
+  readonly declination: number;
+  readonly out_of_bounds: boolean;
+}
+
 /** The ten classical bodies, named identically on both sides of the comparison. */
 export const PLANETS = [
   'sun',
@@ -92,22 +107,43 @@ export async function serverAspects(instant: string): Promise<{ aspects: AspectR
 }
 
 /**
- * Positions in the equatorial frame, where `declination` is the real thing.
+ * Positions in the equatorial frame.
  *
- * This is the oracle for the library's local ecliptic-to-equatorial conversion.
- * It is a different upstream code path from the default ecliptic mode, whose
- * `declination` field returns ecliptic latitude (morphemeris#83).
+ * The oracle for the library's local ecliptic-to-equatorial conversion, and an
+ * independent implementation of it. Since morphemeris#83 this agrees with the
+ * ecliptic mode's own `declination` field, but this remains the right thing to
+ * compare against: it is the path the engine computes equatorially rather than
+ * one it converts for presentation.
  */
 export async function serverEquatorial(
   instant: string,
   place: { readonly lat: number; readonly lng: number },
-): Promise<{ positions: ChartPosition[] }> {
+): Promise<{ positions: EquatorialPosition[] }> {
   return get('/v1/chart', {
     datetime: instant,
     lat: String(place.lat),
     lon: String(place.lng),
     bodies: PLANETS.join(','),
     equatorial: 'true',
+  });
+}
+
+/**
+ * Positions in the default ecliptic frame — the response the library consumes.
+ *
+ * Fetched separately here because the library's adapter discards the wire
+ * `declination` and `out_of_bounds` fields, so they cannot be reached through
+ * a `Chart`.
+ */
+export async function serverEcliptic(
+  instant: string,
+  place: { readonly lat: number; readonly lng: number },
+): Promise<{ positions: (ChartPosition & { out_of_bounds: boolean })[] }> {
+  return get('/v1/chart', {
+    datetime: instant,
+    lat: String(place.lat),
+    lon: String(place.lng),
+    bodies: PLANETS.join(','),
   });
 }
 

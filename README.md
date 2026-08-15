@@ -184,11 +184,11 @@ header. For anything beyond a demo, proxy through your own backend and keep the 
 
 ## Notes on accuracy
 
-- **Declination and out-of-bounds are computed locally**, not read from the API response, which
-  currently returns ecliptic latitude in its `declination` field
-  ([morphemeris#83](https://github.com/morphatic/morphemeris/issues/83)). The local derivation uses
-  true obliquity — mean plus nutation — and agrees with the engine's own equatorial output to within
-  0.1 arcsecond.
+- **Declination and out-of-bounds are computed locally**, not read from the API response. The
+  derivation uses true obliquity — mean plus nutation — and agrees with the engine's own equatorial
+  output to within 0.1 arcsecond. It began as a workaround for
+  [morphemeris#83](https://github.com/morphatic/morphemeris/issues/83), since fixed upstream, and
+  stays because a number the library computes is one it can verify.
 - **`orb` is the distance from exactness**, always non-negative. This is cross-checked against
   Morphemeris's independently implemented server-side aspect endpoint.
 - **Two charts are comparable only if their frames match.** House system, zodiac, and node choice
