@@ -1,0 +1,197 @@
+name: Publish
+
+# ─────────────────────────────────────────────────────────────────────
+# Publishes `astrologyjs` to npm via trusted publishing (OIDC). There is
+# no NPM_TOKEN: npm authenticates the workflow itself against a trusted
+# publisher configured on npmjs.com, so there is nothing to rotate,
+# expire, or leak. Provenance attestations are attached automatically.
+#
+# WHY THIS TRIGGERS ON `push: main` RATHER THAN ON A TAG
+#
+# `@morphemeris/mcp` publishes on `mcp-v*` tags, which works because a
+# human pushes those tags by hand. This repository uses release-please,
+# and release-please creates the tag and the GitHub release using the
+# default GITHUB_TOKEN. GitHub deliberately does not start new workflow
+# runs from events raised by GITHUB_TOKEN, so `on: push: tags` — and
+# equally `on: release: published` — would never fire here. The failure
+# mode is silent: no red run, just nothing happening on release day.
+#
+# Merging the release PR is a human action, so the resulting push to
+# `main` does trigger. This workflow therefore watches `main` and
+# publishes only when the version in package.json is not yet on the
+# registry, which makes it idempotent: ordinary pushes to `main` fall
+# straight through the guard, and re-running never double-publishes.
+#
+# The npm docs rule out the obvious alternative. A reusable workflow
+# called from release-please.yml would be validated against the CALLING
+# workflow's filename, so npm would see `release-please.yml` while the
+# trusted publisher names this file.
+#
+# SETUP REQUIRED ON NPMJS.COM, ONCE
+#
+#   Package:      astrologyjs
+#   Organization: morphatic
+#   Repository:   astrologyjs
+#   Workflow:     publish.yml      <- renaming this file breaks releases
+#   Environment:  (leave blank, unless the optional gate below is used)
+#   Allowed:      tick `npm publish`
+#
+# Configurations created after 2026-05-20 require at least one allowed
+# action, so an untouched `Allowed actions` is a publish failure.
+# ─────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches:
+      - main
+  # Manual recovery: if a publish fails after the release was tagged, fix
+  # forward and re-run this rather than publishing from a laptop.
+  workflow_dispatch:
+
+# Never let two publishes race. Not cancel-in-progress: interrupting a
+# run mid-`npm publish` is exactly when partial state would be worst.
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Is there a new version to publish?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Forks must never publish, and never inherit this repo's identity.
+    if: github.repository == 'morphatic/astrologyjs'
+    outputs:
+      should-publish: ${{ steps.decide.outputs.should-publish }}
+      version: ${{ steps.decide.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: decide
+        name: Compare package.json against the registry
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          NAME="$(node -p "require('./package.json').name")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # `npm view` exits non-zero with E404 when the exact version is
+          # absent, which is the whole signal. Any other failure (registry
+          # down, network) must not be read as "not published" — that would
+          # turn an outage into a republish attempt — so the two cases are
+          # distinguished on the error text rather than on exit status.
+          if OUTPUT="$(npm view "$NAME@$VERSION" version 2>&1)"; then
+            echo "::notice::$NAME@$VERSION is already on the registry; nothing to do."
+            echo "should-publish=false" >> "$GITHUB_OUTPUT"
+          elif grep -qi "E404\|404 Not Found" <<< "$OUTPUT"; then
+            echo "::notice::$NAME@$VERSION is not on the registry; publishing."
+            echo "should-publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not determine whether $NAME@$VERSION is published."
+            echo "$OUTPUT"
+            exit 1
+          fi
+
+  publish:
+    name: Publish to npm
+    needs: check
+    if: needs.check.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      # Lets the runner mint the OIDC token npm exchanges for publish
+      # rights. Without it the publish falls back to looking for a token
+      # and fails with ENEEDAUTH, which reads like a missing credential.
+      id-token: write
+    # Optional approval gate. Create a `npm-publish` environment with
+    # required reviewers, uncomment, and add the same environment name to
+    # the trusted publisher on npmjs.com — it is matched, so setting it
+    # in only one of the two places fails the publish.
+    # environment: npm-publish
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          # npm's trusted publishing requires Node 22.14.0 or later.
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm CLI 11.5.1 or later; Node 22 ships
+      # npm 10.x, which ignores OIDC entirely and fails looking for a
+      # token. This is the step whose absence produces the confusing
+      # "works locally, ENEEDAUTH in CI" failure.
+      - name: Upgrade npm to a version that supports OIDC
+        run: |
+          npm install -g npm@latest
+          echo "npm $(npm --version) (trusted publishing needs >= 11.5.1)"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The full gate, not a subset. This is the last point at which a
+      # broken release can be stopped for free; after `npm publish` a
+      # version number is spent permanently, since npm does not allow
+      # re-publishing one.
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Verify the build produced what package.json promises
+        run: |
+          set -euo pipefail
+          for f in dist/index.js dist/index.d.ts; do
+            test -s "$f" || { echo "::error::$f is missing or empty"; exit 1; }
+          done
+          echo "Files that will be published:"
+          npm pack --dry-run
+
+      # Installing the tarball the way a user would. The 1.x failure was
+      # a package that resolved but did not work, so "it built" is not
+      # the bar — an exports map or a `files` list can be wrong in ways
+      # nothing above this line would notice.
+      - name: Smoke-test the packed tarball
+        run: |
+          set -euo pipefail
+          TARBALL="$(npm pack --silent --pack-destination "$RUNNER_TEMP")"
+          SMOKE="$RUNNER_TEMP/smoke"
+          mkdir -p "$SMOKE"
+          cd "$SMOKE"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "$RUNNER_TEMP/$TARBALL"
+          node --input-type=module -e "
+            import { createChart, createPerson, configure, ASPECTS, AstrologyError } from 'astrologyjs';
+            const missing = Object.entries({ createChart, createPerson, configure, AstrologyError })
+              .filter(([, v]) => typeof v !== 'function')
+              .map(([k]) => k);
+            if (missing.length) throw new Error('Not exported as functions: ' + missing.join(', '));
+            if (!Array.isArray(ASPECTS) || ASPECTS.length !== 21) {
+              throw new Error('ASPECTS did not survive the build');
+            }
+            console.log('Installed package imports cleanly, ' + ASPECTS.length + ' aspects.');
+          "
+
+      # No token, and no --provenance flag: npm detects the OIDC
+      # environment on its own and attaches provenance automatically.
+      - name: Publish
+        run: npm publish --access public
+
+      - name: Summary
+        run: |
+          {
+            echo "### Published \`astrologyjs@${{ needs.check.outputs.version }}\`"
+            echo
+            echo "- <https://www.npmjs.com/package/astrologyjs/v/${{ needs.check.outputs.version }}>"
+            echo "- Provenance attached automatically via trusted publishing (OIDC)."
+          } >> "$GITHUB_STEP_SUMMARY"

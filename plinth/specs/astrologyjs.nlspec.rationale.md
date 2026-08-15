@@ -35,7 +35,19 @@ What broke were two tools that embed the TypeScript compiler API:
 
 The second is already gone: declarations come from `tsc -p tsconfig.build.json` rather than tsup, which removed `rollup-plugin-dts` from the graph entirely and is a better arrangement regardless.
 
-**So exactly one blocker remains.** The pin lifts when `typescript-eslint` ships TS 7 support — nothing else in the toolchain needs to change, and the move is a single dependency bump. This is ordinary ecosystem lag behind a major compiler release, not a dead end, and it should not be allowed to become the status quo. Re-test by installing `typescript@7`, running `pnpm lint`, and unpinning if it passes.
+**So exactly one blocker remains**, and it is a larger one than it first looked. The original note here called it "ordinary ecosystem lag" that "a single dependency bump" would lift. That was wrong, and worth correcting rather than quietly deleting: it read a peer-range rejection as a version-range problem, when the range is a symptom.
+
+[typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940) sets out the actual holdup. Because TypeScript 7 *is* the Go port, supporting it means talking to a compiler that lives outside the JavaScript heap, and three things block that:
+
+- **ESLint has no async parsers.** A Go compiler reached over WASM or native bindings is inherently asynchronous. Workarounds like `synckit` exist but push the problem into serialization.
+- **The port is still experimental**, and the maintainers expect it to need another one or two typescript-eslint majors before it is production-ready.
+- **Rules need JavaScript AST nodes.** Even granted an async parser, both the AST and the type information have to cross the Go/WASM boundary into JavaScript-land, which is unbuilt architectural work rather than a version bump.
+
+The issue is labelled *blocked by external API*, carries no milestone, and has no timeline. So the pin is not a bump away and should be treated as a standing constraint rather than a chore that is nearly done — while still not being accepted as permanent.
+
+What this does **not** block: the compiler itself. `typescript@7` already typechecks, builds, and emits declarations for this codebase correctly. Only the lint path is pinned, and `tseslint.configs.strictTypeChecked` is the binding lint baseline, so a lint path that will not load is disqualifying.
+
+Re-test by installing `typescript@7`, running `pnpm lint`, and unpinning if it passes. Watch the issue rather than the version number.
 
 ### Why keep the domain model instead of rewriting from scratch?
 

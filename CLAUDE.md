@@ -74,6 +74,43 @@ Rules (enforced by lefthook + CI, not just convention):
   release PR; merging that PR tags the release. The manifest is seeded at `1.3.1`, so a `feat!`
   commit produces `2.0.0`. Do not hand-edit `package.json` versions or `CHANGELOG.md`.
 
+## Publishing to npm
+
+Releases publish themselves. Merging the release-please PR bumps the version on `main`, and
+`publish.yml` picks that up and publishes — **never publish from a laptop.**
+
+Publishing uses **npm trusted publishing (OIDC)**. There is no `NPM_TOKEN`: npm authenticates the
+workflow itself against a trusted publisher configured on npmjs.com, so nothing expires, rotates, or
+leaks, and provenance attestations are attached automatically.
+
+Four things this depends on, all easy to break:
+
+- **The trusted publisher on npmjs.com** must name repository `morphatic/astrologyjs` and workflow
+  `publish.yml`, with `npm publish` ticked as an allowed action. **Renaming the workflow file breaks
+  releases.** Configurations created after 2026-05-20 require at least one allowed action, so
+  leaving that box untouched is a publish failure.
+- **`publish.yml` triggers on `push: main`, not on a tag** — unlike `@morphemeris/mcp`, which
+  publishes on hand-pushed `mcp-v*` tags. release-please creates this repo's tags and releases with
+  the default `GITHUB_TOKEN`, and GitHub does not start workflow runs from `GITHUB_TOKEN` events, so
+  `on: push: tags` and `on: release: published` would both never fire. Merging the release PR is a
+  human action, so the push to `main` does. The workflow guards on "is this version already on the
+  registry", which makes ordinary pushes to `main` no-ops and re-runs safe.
+- **The workflow upgrades npm before publishing**, because trusted publishing needs npm CLI ≥ 11.5.1
+  and Node 22 ships npm 10.x. Removing that step produces an `ENEEDAUTH` failure that reads like a
+  missing token.
+- **The publish step uses `npm publish`, not `pnpm publish`** — pnpm's OIDC support is unreliable
+  across majors ([pnpm#11513](https://github.com/pnpm/pnpm/issues/11513)). Install, typecheck, lint,
+  test, and build stay on pnpm.
+
+Do not convert `publish.yml` into a reusable workflow called from `release-please.yml`. npm
+validates the **calling** workflow's filename, so it would see `release-please.yml` and reject the
+publish.
+
+A version number is spent permanently once published — npm does not allow re-publishing one — so the
+workflow runs the full gate plus a tarball smoke test (pack, install, import) before the registry is
+touched. That smoke test exists because 1.x's defining failure was a package that installed fine and
+did not work.
+
 `.github/setup-github.sh --trunk-only` applies branch protection, merge strategy, labels, and
 default-branch settings. It has not been run yet on this repo.
 
