@@ -7,7 +7,7 @@
  */
 import { bodyDefinition, type NodeChoice } from '../bodies.js';
 import { AdapterError } from '../errors.js';
-import { declination, isOutOfBounds, julianDay, meanObliquity } from '../equatorial.js';
+import { declination, isOutOfBounds, julianDay, trueObliquity } from '../equatorial.js';
 import { signDegree, signOf, type SignName } from '../signs.js';
 import type { WireChartData } from './types.js';
 
@@ -77,7 +77,9 @@ function assertFinite(value: number | undefined, label: string, body: string): n
  * of these is recoverable by degrading the result.
  */
 export function adaptChart(wire: WireChartData, context: AdaptContext): AdaptedChartData {
-  const obliquity = meanObliquity(julianDay(context.instant));
+  // True, not mean: `outOfBounds` compares against this, and nutation is worth
+  // up to 10 arcseconds — enough to decide the flag for a body on the boundary.
+  const obliquity = trueObliquity(julianDay(context.instant));
 
   const byLibraryName = new Map<string, AdaptedPlanet>();
 

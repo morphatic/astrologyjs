@@ -574,6 +574,13 @@ FUNCTION deriveSouthNode(northNode: Planet) -> Planet:
 FUNCTION meanObliquity(jd) -> Number:
     -- IAU/Laskar polynomial in Julian centuries from J2000, arcsecond accuracy
 
+FUNCTION nutationInObliquity(jd) -> Number:
+    -- The four principal terms of the IAU 1980 nutation series (Meeus ch. 22),
+    -- accurate to ~0.1". Swings within +/-9.96" over the 18.6-year node cycle.
+
+FUNCTION trueObliquity(jd) -> Number:
+    RETURN meanObliquity(jd) + nutationInObliquity(jd)
+
 FUNCTION declination(longitude, latitude, obliquity) -> Number:
     LET l = radians(longitude), b = radians(latitude), e = radians(obliquity)
     RETURN degrees(ASIN(SIN(b)*COS(e) + COS(b)*SIN(e)*SIN(l)))
@@ -583,9 +590,14 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 
 -- Behavior:
 -- - Both are computed locally from the body's ecliptic longitude and latitude
---   and the mean obliquity for the chart's instant. Neither is read from the
+--   and the TRUE obliquity for the chart's instant. Neither is read from the
 --   API response.
 -- - Obliquity is a function of date, so it is computed per chart, not fixed.
+-- - True, not mean. Nutation is under 10 arcseconds and therefore invisible in
+--   a chart printed to arcminutes, but `outOfBounds` is a threshold comparison
+--   rather than a displayed quantity, and 10" decides the flag for any body
+--   sitting on the boundary. Using mean obliquity also put the library
+--   measurably at odds with the engine it is checked against.
 
 -- Invariant:
 -- - The API's `declination` and `out_of_bounds` fields MUST NOT be used. As of
@@ -597,10 +609,16 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 --   genuinely near the limit were not. Reading those fields would ship a
 --   plausible wrong number, which §1.2 forbids.
 -- - Local derivation was validated against the API's own `equatorial=true`
---   output, which is correct, and agreed to within 1 arcsecond (measured worst
---   case 0.50", the scale of nutation in obliquity). Deriving costs
---   nothing; a second request per chart for equatorial data would double the
---   credit cost of every chart (§12).
+--   output, which is correct, and agrees to within 0.1 arcsecond -- the stated
+--   accuracy of the abbreviated nutation series. Observed residuals are 0.004"
+--   across six bodies at 1974-02-17 and 0.014" across ten at 1990-06-15.
+--   Deriving costs nothing; a second request per chart for equatorial data
+--   would double the credit cost of every chart (§12).
+-- - An earlier revision used mean obliquity and claimed agreement "within 1
+--   arcsecond", generalized from a single test epoch where nutation happened
+--   to be -0.50". It did not hold: at 1990-06-15 the same comparison was off
+--   by 5.4", and the bound over the node cycle is 9.96". Tolerances in this
+--   spec are the model's, not one measurement's.
 -- - This is tracked as an upstream defect. When it is fixed, the derivation
 --   stays: it is free, it is verified, and it removes a dependency.
 ```
@@ -984,7 +1002,7 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [ ] "No aspect" returns an absent value; no code path throws for it
 - [ ] `sign` and `signDegree` are computed locally and are correct in both tropical and sidereal frames
 - [ ] South node derivation is exact: 180° opposed, latitude and declination negated
-- [ ] `declination` is derived locally and agrees with the API's `equatorial=true` output to within 1 arcsecond
+- [x] `declination` is derived locally using true obliquity and agrees with the API's `equatorial=true` output to within 0.1 arcsecond
 - [ ] `outOfBounds` is computed against the obliquity for the chart's own date
 - [ ] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
 - [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance

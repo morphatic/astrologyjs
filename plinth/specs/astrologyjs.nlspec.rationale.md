@@ -148,9 +148,26 @@ Passing through is excluded by [§1.2](./astrologyjs.nlspec.md#12-design-princip
 
 A second request would work, since with `equatorial=true` the latitude slot holds declination and the field is correct there by accident. But it doubles the credit cost of every chart, against a spec whose scarce resource is credits ([§12](./astrologyjs.nlspec.md#12-performance-and-cost)).
 
-Deriving locally costs nothing and is standard spherical trigonometry — `asin(sin β cos ε + cos β sin ε sin λ)`, with mean obliquity from the Laskar polynomial. It was validated against the API's own equatorial output and agreed to within one arcsecond on every body checked — worst case 0.50″, which is the scale of nutation in obliquity, the one term mean obliquity omits. Chart output is displayed in arcminutes, sixty times coarser. It also fits the principle that the service supplies ephemeris and the library computes.
+Deriving locally costs nothing and is standard spherical trigonometry — `asin(sin β cos ε + cos β sin ε sin λ)` — and fits the principle that the service supplies ephemeris and the library computes.
 
 The derivation stays even after the upstream bug is fixed: it is free, verified, and one less thing to depend on.
+
+#### Why true obliquity, and how the mean-obliquity version fooled its own test
+
+The first implementation used *mean* obliquity from the Laskar polynomial, and the spec recorded that it "agreed to within one arcsecond on every body checked — worst case 0.50″, which is the scale of nutation in obliquity, the one term mean obliquity omits."
+
+That reasoning was circular, and the number was an accident. Every fixture was cast for 1974-02-17, and nutation in obliquity at that date is −0.50″ — near a zero crossing of an 18.6-year cycle whose amplitude is nearly ±10″. The measurement did not establish that the omitted term was small; it established that the omitted term was small *that week*. Re-measuring at 1990-06-15 during the Phase 5 cross-check gave 5.4″, an order of magnitude worse, on the same code.
+
+The "displayed in arcminutes, sixty times coarser" defense also does not cover the actual use. `outOfBounds` is not displayed — it is `|δ| > ε`, a threshold comparison, and for a body within 10″ of the boundary the nutation term decides the answer outright. A quantity too small to see in print can still flip a boolean.
+
+So the library computes true obliquity: mean plus the four principal terms of the IAU 1980 nutation series (Meeus ch. 22), which reproduce the full 106-term expansion to about 0.1″. Agreement with the API's own `equatorial=true` output is now 0.004″ across six bodies at 1974-02-17 and 0.014″ across ten at 1990-06-15.
+
+Two process notes came out of this, both worth more than the fix:
+
+- **A tolerance measured at one point is not a bound.** The assertions now use the model's stated accuracy (0.1″ for the abbreviated series) rather than the residual observed on the day. Where a test does pin tighter — the committed fixtures assert 0.01″ — it is because the inputs are frozen, so the epoch cannot vary underneath it.
+- **Hand-transcribed fixtures fail in ways that look like physics.** The original table was copied to six digits. Pallas's ecliptic latitude lost 0.2″ in the rounding, which lands almost 1:1 in declination, and presented as a residual modelling error that survived two rounds of theorizing. Regenerating the table at full float64 collapsed it to 0.0036″. Fixtures are now generated, not typed.
+
+A third finding is upstream, not ours: `/v1/aspects` reports declinations in its `parallels` records that differ from `/v1/chart?equatorial=true` by up to 7.3″ for the same instant and bodies, consistent with the two paths using different obliquity models. This library matches `equatorial=true`, which reproduces the rigorous computation exactly. Worth reporting alongside [morphemeris#83](https://github.com/morphatic/morphemeris/issues/83).
 
 Filed as a cross-repo finding for `morphatic/morphemeris`. Two defects: the `declination` aliasing above, and separately, the `equatorial=true` response reuses the `longitude`/`latitude` field names rather than the `right_ascension`/`declination` names its own spec defines for `BodyPositionEquatorial`.
 

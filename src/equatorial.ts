@@ -41,14 +41,63 @@ export function julianDay(instant: string): number {
  * The IAU 1980 / Laskar polynomial: 23°26'21.448" less 46.8150"T, with small
  * quadratic and cubic terms, where T is Julian centuries from J2000.0.
  *
- * This is *mean* obliquity — it omits nutation, which oscillates within about
- * ±9 arcseconds (0.0025°). Charts display arcminutes (0.0167°), so the omission
- * sits below the resolution of any output the caller sees.
+ * This is *mean* obliquity: it omits nutation. Use {@link trueObliquity} for
+ * anything that compares against a threshold.
  */
 export function meanObliquity(jd: number): number {
   const t = (jd - J2000) / DAYS_PER_CENTURY;
   const arcseconds = 21.448 - t * (46.815 + t * (0.00059 - t * 0.001813));
   return 23 + (26 + arcseconds / 60) / 60;
+}
+
+/**
+ * Nutation in obliquity Δε, in degrees, for a Julian Day.
+ *
+ * The four principal terms of the IAU 1980 series (Meeus, *Astronomical
+ * Algorithms*, ch. 22), which reproduce the full 106-term expansion to about
+ * 0.1 arcsecond — two orders of magnitude finer than the effect being
+ * corrected for, and far beyond what a chart can display.
+ *
+ * The arguments are strictly functions of Terrestrial Time and we pass a UTC
+ * Julian Day. The two differ by about 70 seconds, over which the fastest
+ * argument here moves 4×10⁻⁵ degrees; the resulting error in Δε is under a
+ * microarcsecond.
+ */
+export function nutationInObliquity(jd: number): number {
+  const t = (jd - J2000) / DAYS_PER_CENTURY;
+
+  /** Longitude of the ascending node of the Moon's mean orbit, in degrees. */
+  const omega = 125.04452 - t * (1934.136261 - t * (0.0020708 + t / 450_000));
+  /** Mean longitude of the Sun. */
+  const sun = 280.4665 + 36_000.7698 * t;
+  /** Mean longitude of the Moon. */
+  const moon = 218.3165 + 481_267.8813 * t;
+
+  const arcseconds =
+    9.2 * Math.cos(omega * DEG) +
+    0.57 * Math.cos(2 * sun * DEG) +
+    0.1 * Math.cos(2 * moon * DEG) -
+    0.09 * Math.cos(2 * omega * DEG);
+
+  return arcseconds / 3600;
+}
+
+/**
+ * True obliquity of the ecliptic ε = ε₀ + Δε, in degrees, for a Julian Day.
+ *
+ * This is the value to convert coordinates with. Nutation swings by nearly ±10
+ * arcseconds over the 18.6-year cycle of the lunar node — invisible in a chart
+ * printed to arcminutes, but decisive for {@link isOutOfBounds}, which is a
+ * threshold comparison rather than a displayed quantity, and enough to put this
+ * library measurably at odds with any engine that does the conversion properly.
+ *
+ * An earlier revision used mean obliquity and claimed agreement with the
+ * upstream engine "to within 1 arcsecond". That number came from a single test
+ * epoch — 1974-02-17, where Δε happens to be −0.5" — and did not generalize:
+ * at 1990-06-15 the same comparison is off by 5.4".
+ */
+export function trueObliquity(jd: number): number {
+  return meanObliquity(jd) + nutationInObliquity(jd);
 }
 
 /**

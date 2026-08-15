@@ -55,7 +55,14 @@ export type { BodyDefinition, BodySource, NodeChoice } from './bodies.js';
 export { SIGNS, normalizeLongitude, signDegree, signOf } from './signs.js';
 export type { SignName } from './signs.js';
 
-export { declination, isOutOfBounds, julianDay, meanObliquity } from './equatorial.js';
+export {
+  declination,
+  isOutOfBounds,
+  julianDay,
+  meanObliquity,
+  nutationInObliquity,
+  trueObliquity,
+} from './equatorial.js';
 
 export { geoMidpoint, instantMidpoint, longitudeMidpoint } from './midpoints.js';
 
