@@ -11,6 +11,7 @@ import {
   serverAspects,
   serverComposite,
   serverDavison,
+  serverEcliptic,
   serverEquatorial,
 } from './morphemeris.js';
 
@@ -108,8 +109,7 @@ live('cross-checked against Morphemeris server-side computation', () => {
 
   it('agrees with the server’s equatorial output on declination, to a tenth of an arcsecond', async () => {
     // The strongest check on the local conversion: the same instant computed
-    // in the equatorial frame upstream, which is a different code path from
-    // the ecliptic mode whose `declination` field is wrong (morphemeris#83).
+    // in the equatorial frame upstream, by an independent implementation.
     //
     // The tolerance is the documented accuracy of the abbreviated four-term
     // nutation series, 0.1" — deliberately the model's bound and not the
@@ -133,6 +133,37 @@ live('cross-checked against Morphemeris server-side computation', () => {
         0.1 / 3600,
       );
     }
+  });
+
+  it('agrees with the response fields it deliberately ignores', async () => {
+    // The library derives `declination` and `outOfBounds` rather than reading
+    // them, originally because the response fields were wrong (morphemeris#83,
+    // fixed 2026-08-15) and now because a computed value is a verifiable one.
+    //
+    // Since both are right, they must match — and this is the assertion that
+    // says so out loud. A divergence means either the local math broke or the
+    // upstream field regressed, and both are worth hearing about immediately.
+    const [chart, server] = await Promise.all([
+      natalA(),
+      serverEcliptic(A.instant, { lat: A.lat, lng: A.lng }),
+    ]);
+
+    const mine = new Map(chart.planets.map((p) => [p.name, p]));
+    let compared = 0;
+
+    for (const position of server.positions) {
+      const ours = mine.get(position.body);
+      expect(ours, position.body).toBeDefined();
+      if (ours === undefined) continue;
+      expect(
+        Math.abs(ours.declination - position.declination),
+        `${position.body} declination`,
+      ).toBeLessThan(0.1 / 3600);
+      expect(ours.outOfBounds, `${position.body} outOfBounds`).toBe(position.out_of_bounds);
+      compared += 1;
+    }
+
+    expect(compared).toBe(PLANET_NAMES.length);
   });
 
   it('computes the same composite midpoints the server does', async () => {
