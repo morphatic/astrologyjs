@@ -71,8 +71,11 @@ Rules (enforced by lefthook + CI, not just convention):
   Never use `--admin` to bypass.
 - **After merge, branches are auto-deleted** (repo setting).
 - **Releases go through release-please.** It reads Conventional Commits on `main` and maintains a
-  release PR; merging that PR tags the release and publishes it. The manifest is seeded at `1.3.1`,
-  so a `feat!` commit produces `2.0.0`. See "Releasing and publishing" below.
+  release PR; merging that PR tags the release and publishes it. See "Releasing and publishing".
+- **A breaking change must be marked in a commit that lands on `main`** — `feat!:` in the subject, or
+  a `BREAKING-CHANGE:` footer. Putting `!` only in a *pull request title* is not enough unless the PR
+  is squash-merged, because a merge commit preserves the branch's individual commit messages and
+  discards the PR title. This has already bitten once: see the note in "Releasing and publishing".
 
 ## Releasing and publishing
 
@@ -114,6 +117,29 @@ because 1.x's defining failure was a package that installed fine and did not wor
 
 `workflow_dispatch` is the recovery hatch if a release is tagged but the publish fails. It is safe to
 re-run: the republish guard makes it a no-op once the version is live.
+
+### Getting the version right
+
+release-please derives the version from commit messages, so the version is only as correct as the
+messages that reached `main`.
+
+**2.0.0 nearly shipped as 1.4.0.** PR #9 was titled `feat!: rebuild astrologyjs on the Morphemeris
+API`, but it was merged as a *merge commit*, so only the branch's own commits landed — all `feat:`
+and `fix:`, none marked breaking. release-please saw a minor bump and proposed 1.4.0 for a release
+that is ESM-only, changes `Aspect.orb` semantics, and removes `Planet.symbol` and the `Chart`
+constructor. Anyone on `^1.3.1` would have been upgraded into a rewrite without warning.
+
+The root cause is that `.github/setup-github.sh` has never been run, so squash-only merging is not
+enforced at the repo level. With squash merging the PR title becomes the commit subject and the `!`
+survives.
+
+Two habits that prevent a repeat:
+
+- **Read the version on the release PR before merging it.** That PR is the checkpoint, and the
+  proposed version is stated in its title and body. A wrong version there is free to fix; a wrong
+  version on npm is permanent.
+- To force a version regardless of what the commit history implies, land a commit on `main` whose
+  **body** contains `Release-As: x.y.z` (case-insensitive). That is what corrected this one.
 
 `.github/setup-github.sh --trunk-only` applies branch protection, merge strategy, labels, and
 default-branch settings. It has not been run yet on this repo.
