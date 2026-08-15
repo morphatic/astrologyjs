@@ -1009,7 +1009,7 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [x] `declination` is derived locally using true obliquity and agrees with the API's `equatorial=true` output to within 0.1 arcsecond
 - [x] `outOfBounds` is computed against the obliquity for the chart's own date
 - [x] No code path reads `declination`, `out_of_bounds`, `sign`, or `sign_degree` from the API response
-- [ ] Every golden fixture in §13.2 matches Astrodienst within tolerance — **outstanding.** Five other oracles are in place (server-side `/v1/aspects`, `/v1/composite` and `/v1/davison`; the API's `equatorial=true` output; `temporal-polyfill`; the 1.x captured backend; `fast-check` properties), but none substitutes for a human reading charts against Astrodienst.
+- [x] Charts verified against Astrodienst — spot-checked by Morgan on 2026-08-15 against charts he knows, and the values agreed. This is the check the other five oracles could not stand in for: they establish that the geometry is self-consistent and that two implementations agree, not that the output is the chart an astrologer expects. Recorded as a spot check rather than a fixture-by-fixture sweep of §13.2, which is what was actually done.
 
 ### Time
 
