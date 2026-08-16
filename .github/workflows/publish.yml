@@ -105,7 +105,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Pinned, as in ci.yml and audit.yml. The action has no default: with no
+      # `version` here and no `packageManager` field in package.json it fails
+      # with "No pnpm version is specified" before installing anything.
       - uses: pnpm/action-setup@v6
+        with:
+          version: 10
 
       - uses: actions/setup-node@v7
         with:
