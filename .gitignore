@@ -2,9 +2,22 @@ logs
 *.log
 npm-debug.log*
 node_modules
-typings
-spec
 coverage
 .DS_store
-.github_changelog_generator
-src/js
+
+# Built by `pnpm build`, published from CI. 1.3.1 committed dist/; this branch
+# does not, because the publish workflow builds and smoke-tests the tarball and
+# a committed artifact could silently disagree with the source beside it.
+dist
+
+# Secrets, in case a working tree is shared with main.
+.env
+.env.local
+
+# These live only on main. Listed here because main and this branch share a
+# working directory on the maintainer's machine, and neither belongs in a
+# release whose whole surface is one file.
+plinth/
+docs/
+features/
+.claude/
