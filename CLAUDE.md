@@ -144,16 +144,32 @@ harmless and does nothing. It is not what gates the merge — the required conte
 ### If a release wedges
 
 Symptom: the release PR merges, the workflow is green, and there is no tag, no GitHub release, and
-no publish. The run says `There are untagged, merged release PRs outstanding - aborting`, usually
-alongside `Expected 1 releases, only found 0` and `PR component: undefined does not match configured
-component`.
+no publish. The run says `There are untagged, merged release PRs outstanding - aborting`, alongside
+`Expected 1 releases, only found 0` and `PR component: undefined does not match configured
+component: astrologyjs`.
 
-This does not clear itself. Every later run aborts the same way, so releases stay stuck until a
-human creates the missing tag. What the merge *does* get right is the version bump: `package.json`,
-`.github/.release-please-manifest.json` and `CHANGELOG.md` are all correct on `main`. Only the tag
-is missing, and the release and publish both follow from it.
+**That last line is the cause.** It wedged 2.0.0 and 2.0.1 identically, and an earlier version of
+this section named the missing tag instead — the missing tag is a downstream symptom. The mechanism,
+read out of release-please v17.6.0's `src/strategies/base.ts`:
 
-Recovery, in order:
+- `BaseStrategy.buildRelease()` compares the merged PR's branch component against
+  `getBranchComponent()`, and on mismatch does a bare `return` — no release, no error, no non-zero
+  exit.
+- `getBranchComponent()` is `this.component || getDefaultComponent()`, which **ignores**
+  `include-component-in-tag`. `this.component` defaults to the `package.json` name, so it is always
+  `astrologyjs`. (`getComponent()`, used for *tag* names, does honour the flag and returns `''` —
+  which is why tags read `v2.0.1` and not `astrologyjs-v2.0.1`. Two methods, two answers.)
+- `separate-pull-requests: false` enables the **Merge plugin** (`running plugin: Merge` in the log),
+  which rebuilds the release PR on `release-please--branches--main` — a branch with no component
+  segment. So the branch says `undefined` and the strategy says `astrologyjs`, forever.
+
+Fixed by setting `separate-pull-requests: true` in `.github/release-please-config.json`. With one
+package that still produces exactly one PR, and `include-component-in-tag: false` keeps tags as
+`v<version>`. The PR title gains the version (`chore: release astrologyjs 2.0.2` rather than
+`chore: release main`), which makes the version check below readable from the title alone.
+
+The fix cannot rescue an already-wedged release: the merged PR's branch name is history and will
+mismatch forever. Recover that one by hand, in order:
 
 1. `gh release create v<version> --target <release commit> --notes-file <the new CHANGELOG section>`
 2. Relabel the merged release PR `autorelease: pending` → `autorelease: tagged` (via
@@ -161,9 +177,13 @@ Recovery, in order:
    the local token lacks). Skipping this leaves release-please seeing outstanding work.
 3. Publish with `workflow_dispatch`, since `release_created` never fired.
 
-Beware of misreading the cause. The `pullRequestTitlePattern miss the part of '${component}'`
-warnings appear on every run in manifest mode and are **not** the problem; removing the custom
-pattern changes nothing. The missing tag is the problem.
+What the merge *does* get right is the version bump: `package.json`,
+`.github/.release-please-manifest.json` and `CHANGELOG.md` are all correct on `main`.
+
+Two red herrings, both of which cost time already. The `pullRequestTitlePattern miss the part of
+'${component}'` warnings appear on every run in manifest mode and are **not** the problem; removing
+the custom pattern changes nothing. Neither is the `commit could not be parsed` noise from 2016-era
+commit messages — release-please logs one per unparseable commit and carries on.
 
 ### Getting the version right
 
