@@ -209,6 +209,7 @@
     "package-lock.json",
     "yarn.lock",
     "coverage/**",
-    "docs/**"
+    "docs/**",
+    "CHANGELOG.md"
   ]
 }
