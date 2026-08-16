@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.0.2](https://github.com/morphatic/astrologyjs/compare/v2.0.1...v2.0.2) (2026-08-16)
+
+
+### Bug Fixes
+
+* **ci:** stop release-please silently skipping every release ([#25](https://github.com/morphatic/astrologyjs/issues/25)) ([858652f](https://github.com/morphatic/astrologyjs/commit/858652fe82e63f9daaad6a4dde81021fe7e5856a))
+
 ## [2.0.1](https://github.com/morphatic/astrologyjs/compare/v2.0.0...v2.0.1) (2026-08-16)
 
 
