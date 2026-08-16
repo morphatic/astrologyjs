@@ -1,6 +1,6 @@
 # astrologyjs — Spec Index
 
-`astrologyjs` turns a person or event — a name, a moment, a place — into an astrological chart: body positions, house cusps, angles, and aspects. Published on npm since 2016 and currently broken; 2.0.0 is a re-implementation on top of the [Morphemeris](https://morphemeris.com) ephemeris API. For application developers building astrology software in JS/TS, and the agents working alongside them. One network dependency; everything else computed locally.
+`astrologyjs` turns a person or event — a name, a moment, a place — into an astrological chart: body positions, house cusps, angles, and aspects. Published on npm since 2016; 1.x was broken for years when its ephemeris backend went away, and 2.0.0 is a re-implementation on top of the [Morphemeris](https://morphemeris.com) ephemeris API, published 2026-08-15. For application developers building astrology software in JS/TS, and the agents working alongside them. One network dependency; everything else computed locally.
 
 ## Related files
 

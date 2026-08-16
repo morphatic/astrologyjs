@@ -6,3 +6,8 @@ CHANGELOG.md
 docs/api/
 node_modules/
 dist/
+
+# Untracked and gitignored, so CI never sees it — but a local lint run globs the
+# working tree rather than the index, and would fail on drafts and scratch notes
+# that are nobody's business but the maintainer's.
+plinth/private/
