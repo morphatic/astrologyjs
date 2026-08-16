@@ -1,6 +1,6 @@
 {
   "name": "astrologyjs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "An astrological charting library, backed by the Morphemeris ephemeris API.",
   "type": "module",
   "exports": {
