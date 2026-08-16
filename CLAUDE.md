@@ -109,6 +109,10 @@ Four things this depends on, all easy to break:
 - **The publish step uses `npm publish`, not `pnpm publish`** — pnpm's OIDC support is unreliable
   across majors ([pnpm#11513](https://github.com/pnpm/pnpm/issues/11513)). Install, typecheck, lint,
   test, and build stay on pnpm.
+- **`pnpm/action-setup` must be given `version: 10`**, as in `ci.yml` and `audit.yml`. The action has
+  no default and this repo declares no `packageManager` field, so omitting it fails with "No pnpm
+  version is specified" before anything installs. This is the one thing that cannot be copied
+  verbatim from `@morphemeris/mcp`, whose package.json does declare it.
 
 A version number is spent permanently once published — npm does not allow replacing one — so before
 the registry is touched the workflow runs the full gate, refuses outright if the version already
@@ -117,6 +121,49 @@ because 1.x's defining failure was a package that installed fine and did not wor
 
 `workflow_dispatch` is the recovery hatch if a release is tagged but the publish fails. It is safe to
 re-run: the republish guard makes it a no-op once the version is live.
+
+### Approving the release PR's workflows is deliberate
+
+Once branch protection is on, release-please's own pushes do not start workflow runs — GitHub does
+not trigger workflows from `GITHUB_TOKEN` events — so CI on the release PR sits at
+`action_required` with a "1 workflow awaiting approval" banner that names no workflow. Two ways
+forward, both fine: click **Approve workflows to run**, or click **Update branch**, which pushes with
+a human token and starts CI normally. Branch protection is `strict`, so the branch usually needs
+updating anyway.
+
+**Do not engineer this away.** Morgan has looked at it and wants it kept: it suppresses CI runs on a
+release PR that is regenerated on every merge but not yet meant to ship, and it forces a human to
+watch CI go green immediately before an irreversible publish. That is a ritual, not friction. The
+same reasoning applies to any manual gate sitting in front of an action that cannot be taken back.
+
+One banner is usually the `Dependabot auto-merge` workflow, which fires on every `pull_request` and
+then skips, because its job is gated on `github.actor == 'dependabot[bot]'`. Approving it is
+harmless and does nothing. It is not what gates the merge — the required context is
+`CI (required check)`.
+
+### If a release wedges
+
+Symptom: the release PR merges, the workflow is green, and there is no tag, no GitHub release, and
+no publish. The run says `There are untagged, merged release PRs outstanding - aborting`, usually
+alongside `Expected 1 releases, only found 0` and `PR component: undefined does not match configured
+component`.
+
+This does not clear itself. Every later run aborts the same way, so releases stay stuck until a
+human creates the missing tag. What the merge *does* get right is the version bump: `package.json`,
+`.github/.release-please-manifest.json` and `CHANGELOG.md` are all correct on `main`. Only the tag
+is missing, and the release and publish both follow from it.
+
+Recovery, in order:
+
+1. `gh release create v<version> --target <release commit> --notes-file <the new CHANGELOG section>`
+2. Relabel the merged release PR `autorelease: pending` → `autorelease: tagged` (via
+   `gh api -X DELETE/POST .../issues/<n>/labels`, since `gh pr edit` needs a `read:project` scope
+   the local token lacks). Skipping this leaves release-please seeing outstanding work.
+3. Publish with `workflow_dispatch`, since `release_created` never fired.
+
+Beware of misreading the cause. The `pullRequestTitlePattern miss the part of '${component}'`
+warnings appear on every run in manifest mode and are **not** the problem; removing the custom
+pattern changes nothing. The missing tag is the problem.
 
 ### Getting the version right
 
