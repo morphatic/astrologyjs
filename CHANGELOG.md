@@ -1,5 +1,41 @@
 # Change Log
 
+## [2.0.0](https://github.com/morphatic/astrologyjs/compare/v1.3.1...v2.0.0) (2026-08-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* 2.0.0 is a ground-up re-implementation and shares no API with 1.x. Nothing about upgrading is incremental: 1.x has been non-functional for years because the free ephemeris service it called no longer exists, so this release is less a migration than a different library that kept the domain vocabulary. Concretely — the package is ESM-only and ships no CommonJS build; callers supply their own Morphemeris API key, and there is no bundled key and no free proxy; `Aspect.orb` is now the angular distance from exactness rather than the fractional part of the separation, so any orb 1.x reported for a non-integer angle was wrong; birth times are given as a local wall clock plus a place instead of a `Date`, because a `Date` silently imported the host's time zone and produced a different chart on a laptop than in a container; and `Planet.symbol`, the data-taking `Chart` constructor, `innerPlanets` and `outerPlanets` are gone. Charts stored from 1.x should be recomputed rather than compared against 2.x output.
+
+### Features
+
+* add aspects, midpoints, Person and Chart ([e646934](https://github.com/morphatic/astrologyjs/commit/e6469345496f19806d8acf47c15069802154dab8))
+* add errors, config, body registry, signs, and equatorial derivation ([53c0cb0](https://github.com/morphatic/astrologyjs/commit/53c0cb0797090eb5c5c1020b56290bdf32588fa8))
+* **ephemeris:** add the Morphemeris client and adapter ([4cc379e](https://github.com/morphatic/astrologyjs/commit/4cc379e839e2bd2a70dc81487b767846240430da))
+* **equatorial:** derive declination from true obliquity, not mean ([aaddc33](https://github.com/morphatic/astrologyjs/commit/aaddc3380d3d530d916d3d77af2e697acdf4da6e))
+* rebuild astrologyjs on the Morphemeris API ([#17](https://github.com/morphatic/astrologyjs/issues/17)) ([be08898](https://github.com/morphatic/astrologyjs/commit/be0889864bd7da23ab42b5622bc84b9fbbae8a6e))
+* **time:** resolve local wall-clock times to instants ([d5f617d](https://github.com/morphatic/astrologyjs/commit/d5f617d175af0e52a030ca8abbb3ba2eaa04b6eb))
+
+
+### Bug Fixes
+
+* **ci:** make the lint job pass on the whole tree ([681440a](https://github.com/morphatic/astrologyjs/commit/681440a81963f3d9df8ada6bc5f68426e312a8bf))
+* **ci:** run the BDD suite only on Node versions cucumber supports ([19dfd08](https://github.com/morphatic/astrologyjs/commit/19dfd089a1001be8200fa010edd8cbc286139e16))
+
+
+### Documentation
+
+* correct the spec against the live API ([02fc74d](https://github.com/morphatic/astrologyjs/commit/02fc74d99966fd8cd3ba62ebee979c6e2c5ddac4))
+* draft the astrologyjs 2.0 NLSpec ([78b2143](https://github.com/morphatic/astrologyjs/commit/78b214326da530712e4382cf4b3aba4bb29f8923))
+* record that the upstream declination bug is fixed ([#14](https://github.com/morphatic/astrologyjs/issues/14)) ([396f4ae](https://github.com/morphatic/astrologyjs/commit/396f4aee6c5694430933561a5c4794a3954552f5))
+* record the TypeScript 7 unpin trigger ([ea45c56](https://github.com/morphatic/astrologyjs/commit/ea45c5670517b88deba4f038899351c7f9b1b47c))
+* rewrite the README and add the glyph and API references ([7cd9415](https://github.com/morphatic/astrologyjs/commit/7cd94152f07d49a896ce5d24bb52a4c134ff3707))
+
+
+### CI
+
+* publish to npm via trusted publishing (OIDC) ([#15](https://github.com/morphatic/astrologyjs/issues/15)) ([789ee56](https://github.com/morphatic/astrologyjs/commit/789ee56bc9401adbb66b622c3dcad7f2d32d138d))
+
 ## [v1.3.0](https://github.com/morphatic/astrologyjs/tree/v1.3.0) (2016-11-18)
 
 [Full Changelog](https://github.com/morphatic/astrologyjs/compare/v1.2.0...v1.3.0)
