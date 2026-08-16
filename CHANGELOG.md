@@ -1,5 +1,18 @@
 # Change Log
 
+## [2.0.1](https://github.com/morphatic/astrologyjs/compare/v2.0.0...v2.0.1) (2026-08-16)
+
+
+### Bug Fixes
+
+* **ci:** let release-please parse its own release PR titles ([#18](https://github.com/morphatic/astrologyjs/issues/18)) ([19db34b](https://github.com/morphatic/astrologyjs/commit/19db34bd9350892d3a7d5693493383859cf6fdd2))
+
+
+### Documentation
+
+* close out the definition of done and correct two stale claims ([#23](https://github.com/morphatic/astrologyjs/issues/23)) ([01928d2](https://github.com/morphatic/astrologyjs/commit/01928d22fcf71e14bba93d490dda334fef460170))
+* record the release ritual and the wedge recovery ([#21](https://github.com/morphatic/astrologyjs/issues/21)) ([56f0ddc](https://github.com/morphatic/astrologyjs/commit/56f0ddc6a72d7dfe390cea0b4ee7472c8820ec8c))
+
 ## [2.0.0](https://github.com/morphatic/astrologyjs/compare/v1.3.1...v2.0.0) (2026-08-16)
 
 
