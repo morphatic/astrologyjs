@@ -174,9 +174,16 @@ does not happen here.
 
 ## Using this in a browser
 
-The library runs in a browser, and `process.env` is never read in a browser build. But **any key in
-a browser bundle is public** — this library does not obfuscate it, because obfuscation implies a
-protection that does not exist.
+The library runs in a browser, and `process.env` is never read in a browser build.
+
+That is tested rather than asserted: `test/browser/chart.browser.test.ts` bundles the library for
+`platform=browser`, serves it from a real origin, and casts a natal chart in Chromium against the
+live API — then casts the same chart under Node and requires every planet's longitude, latitude,
+speed and declination to match to ten decimal places. A missing key surfaces as `ConfigurationError`
+rather than `ReferenceError: process is not defined`, and the cross-origin request is a real one.
+
+But **any key in a browser bundle is public** — this library does not obfuscate it, because
+obfuscation implies a protection that does not exist.
 
 If you ship a key to browsers, restrict it with Morphemeris's `require_origin` setting. Note that
 origin restriction alone does not protect a leaked key, since a non-browser caller simply omits the
@@ -208,6 +215,16 @@ header. For anything beyond a demo, proxy through your own backend and keep the 
 Tests come before code, and a failing test means the code is wrong until proven otherwise. Run
 `pnpm test` — that is unit tests plus the Gherkin acceptance suite, and both must pass. Tests
 against the live API read `MORPHEMERIS_API_KEY` from the environment and no-op cleanly without it.
+
+The browser suite additionally needs a Chromium binary, which is a deliberate one-off rather than
+something every install pays for:
+
+```sh
+pnpm exec playwright install chromium
+```
+
+Without it — and with an API key present — that suite fails with an error telling you to run
+exactly that.
 
 ## License
 
