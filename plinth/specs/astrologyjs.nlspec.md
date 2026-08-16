@@ -1,6 +1,6 @@
 # astrologyjs
 
-`astrologyjs` is a TypeScript library that turns a person or event — a name, a moment, and a place — into an astrological chart: body positions, house cusps, angles, and the aspects between bodies. It is published on npm, has existed since 2016, and is currently broken; version 2.0.0 is a re-implementation on top of the [Morphemeris](https://morphemeris.com) ephemeris API. It is written for application developers building astrology software in JavaScript or TypeScript, and for the coding agents working alongside them. It depends on exactly one network service (Morphemeris, for ephemeris and house cusps) and computes everything else locally.
+`astrologyjs` is a TypeScript library that turns a person or event — a name, a moment, and a place — into an astrological chart: body positions, house cusps, angles, and the aspects between bodies. It is published on npm and has existed since 2016; version 1.x was broken for years when its ephemeris backend went away, and version 2.0.0 is a re-implementation on top of the [Morphemeris](https://morphemeris.com) ephemeris API, published 2026-08-15. 1.3.2 is a tombstone on the `legacy/1.x` branch whose only behavior is to explain the retirement — see §14. It is written for application developers building astrology software in JavaScript or TypeScript, and for the coding agents working alongside them. It depends on exactly one network service (Morphemeris, for ephemeris and house cusps) and computes everything else locally.
 
 ## Related files
 
@@ -1050,13 +1050,34 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 - [x] ESM-only; `type: module`, no `require` condition in exports
 - [x] Full suite passes; `pnpm test` green
 - [x] README, glyph tables, and generated API reference published
-- [ ] `2.0.0` published to npm via release-please — **outstanding**, and deliberately outside the agent's remit.
-- [ ] `1.3.2` published, whose error states both that the backend is gone and that 1.x results were unreliable — **outstanding.** A separate branch off 1.x; not started.
+- [x] `2.0.0` published to npm via release-please — published 2026-08-15 with SLSA provenance, and
+      verified by installing from the registry into a clean project and casting a chart. The release
+      PR proposed 1.4.0 first, because PR #9's `feat!` title was discarded by a merge commit; a
+      `Release-As: 2.0.0` footer corrected it. See "Getting the version right" in `CLAUDE.md`.
+- [x] `1.3.2` published, whose error states both that the backend is gone and that 1.x results were
+      unreliable — published 2026-08-15 from the `legacy/1.x` branch under the `legacy` dist-tag, so
+      `latest` still resolves to 2.x while `^1.3.1` resolves to the notice. Verified by installing
+      `astrologyjs@^1.3.1` from the registry. The unreliability half names a concrete case: 1.x's
+      `Aspect.orb` returned `ng % 1`, the fractional part of the separation, so a trine at 118.5°
+      reported 0.5 instead of 1.5.
+- [x] The 1.x range is deprecated on the registry (`npm deprecate`) — applied 2026-08-15 to all six
+      1.x versions, 1.0.0 through 1.3.2, with 2.0.0 untouched. This is the half that warns at
+      *install* time, before any code runs, and it reaches people whose range never resolves to
+      1.3.2 at all. It could not be automated: npm trusted publishing authorizes `npm publish` only,
+      so it needs an interactive login. Unlike a publish it is reversible — an empty message clears
+      it.
 
 ### Integration
 
 - [ ] A developer with only a Morphemeris API key and a lat/lng produces a correct natal chart in one call, with no other configuration, in both Node and a browser bundle — **half done.** Verified end to end under Node (`test/live/chart.live.test.ts`). For the browser: the build carries no `node:` imports and bundles clean for `platform=browser`, and the only `process` reference is the guarded `globalThis.process` lookup, so a bundler cannot inline a key — but no chart has actually been cast in a browser.
-- [ ] The four open issues (#3, #4, #5, #7) each receive an individual reply and are closed — **outstanding**, and deliberately outside the agent's remit.
+- [x] The four open issues (#3, #4, #5, #7) each receive an individual reply and are closed —
+      answered and closed 2026-08-15. Scope grew: all **seven** open issues were answered, not four.
+      #1 (2016 packaging, then the backend failure in a 2017 follow-up), #2 (React Native), and #6
+      (no content) were open too and the DoD had not named them. Each reply addresses its own
+      thread, and credits the people who diagnosed the failure years before it was fixed — @keel
+      pulled JSON out of `morphemeris.c` in 2017, @johaneyrich decoded the response buffer to
+      `<html>` in 2019, @chaitanya1999 posted the nginx 301 in 2024. Drafts kept in
+      `plinth/private/issue-replies.md`.
 
 ---
 

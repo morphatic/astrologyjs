@@ -176,9 +176,11 @@ and `fix:`, none marked breaking. release-please saw a minor bump and proposed 1
 that is ESM-only, changes `Aspect.orb` semantics, and removes `Planet.symbol` and the `Chart`
 constructor. Anyone on `^1.3.1` would have been upgraded into a rewrite without warning.
 
-The root cause is that `.github/setup-github.sh` has never been run, so squash-only merging is not
-enforced at the repo level. With squash merging the PR title becomes the commit subject and the `!`
-survives.
+The root cause was that `.github/setup-github.sh` had not been run, so squash-only merging was not
+enforced at the repo level and PR #9 landed as a merge commit. With squash merging the PR title
+becomes the commit subject and the `!` survives. **This is fixed** — see below — so the specific
+trap that produced it is closed, but the habits below still matter because a wrong version is only
+free to fix before the release PR is merged.
 
 Two habits that prevent a repeat:
 
@@ -189,7 +191,46 @@ Two habits that prevent a repeat:
   **body** contains `Release-As: x.y.z` (case-insensitive). That is what corrected this one.
 
 `.github/setup-github.sh --trunk-only` applies branch protection, merge strategy, labels, and
-default-branch settings. It has not been run yet on this repo.
+default-branch settings. It **was run on 2026-08-15**, and the settings are live: squash is the only
+merge method (merge commits and rebase are both disabled), branches auto-delete on merge, and `main`
+requires the `CI (required check)` status with `enforce_admins` on. Zero required reviewers, which is
+correct for a single-maintainer repo — the human gate is Morgan's explicit approval, not GitHub's.
+
+Two consequences worth knowing before you fight them:
+
+- `enforce_admins` means `--admin` cannot bypass a red CI run. That is deliberate.
+- Merge commits are no longer possible, so a PR title's `feat!` now always reaches `main`. The
+  failure that produced 1.4.0 cannot recur through that route.
+
+### The `legacy/1.x` branch, and the second `publish.yml`
+
+`legacy/1.x` is a frozen branch off `v1.3.1` carrying `astrologyjs@1.3.2`, a tombstone whose only
+behavior is to throw an error explaining that 1.x is retired. It was published 2026-08-15. It is
+never merged into `main` and shares no code, no toolchain, and no dependency tree with 2.x.
+
+**There are two different files at `.github/workflows/publish.yml`.** `main`'s releases 2.x through
+release-please. `legacy/1.x`'s publishes the 1.x tombstone by hand. They share a filename because
+they have to: npm's trusted publisher names the workflow `publish.yml` and validates the filename of
+the workflow that actually calls it, so `publish-legacy.yml` would not authenticate. They are told
+apart by ref, and the legacy one's first step refuses to run unless `GITHUB_REF` is
+`refs/heads/legacy/1.x`. Editing "the publish workflow" without checking which branch you are on is
+the mistake this section exists to prevent.
+
+Three things that were verified rather than assumed, so nobody has to re-derive them:
+
+- **npm trusted publishing does not pin a branch.** The config names organization, repository,
+  workflow filename, and optionally environment. `gh workflow run publish.yml --ref legacy/1.x`
+  authenticates and attaches provenance normally.
+- **`npm publish` moves `latest` to whatever was published most recently, ignoring semver.** A bare
+  publish of 1.3.2 would have pointed every `npm install astrologyjs` at the tombstone and
+  effectively unpublished 2.x. `--tag legacy` is load-bearing, and the workflow reads `latest`
+  before and after and fails the run if it moved. Dist-tags do not affect range resolution, so
+  `^1.3.1` still resolves to 1.3.2 — which is the entire point of shipping it.
+- **Trusted publishing authorizes `npm publish` only.** `npm deprecate` and `npm dist-tag` still
+  need an interactive login, so they stay manual.
+
+Working-tree note: `main` and `legacy/1.x` have completely different dependency trees. Switching
+between them requires `pnpm install`.
 
 ## Pull request workflow
 
