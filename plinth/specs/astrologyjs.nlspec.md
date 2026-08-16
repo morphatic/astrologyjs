@@ -1069,7 +1069,25 @@ The README must describe Morphemeris's maturity accurately and must not overstat
 
 ### Integration
 
-- [ ] A developer with only a Morphemeris API key and a lat/lng produces a correct natal chart in one call, with no other configuration, in both Node and a browser bundle — **half done.** Verified end to end under Node (`test/live/chart.live.test.ts`). For the browser: the build carries no `node:` imports and bundles clean for `platform=browser`, and the only `process` reference is the guarded `globalThis.process` lookup, so a bundler cannot inline a key — but no chart has actually been cast in a browser.
+- [x] A developer with only a Morphemeris API key and a lat/lng produces a correct natal chart in
+      one call, with no other configuration, in both Node and a browser bundle — verified in both
+      2026-08-16. Node: `test/live/chart.live.test.ts`. Browser:
+      `test/browser/chart.browser.test.ts` bundles the library with esbuild for `platform=browser`,
+      serves it from a real HTTP origin, drives Chromium via Playwright, and casts a natal chart
+      against the live API — then casts the same chart under Node and requires every planet's
+      longitude, latitude, speed, declination and out-of-bounds flag to agree to ten decimal places,
+      along with the resolved zone, offset, instant, houses and ascendant. "It ran" is a weaker
+      claim than "it produced the same numbers", and only the second is worth having.
+      Four things previously argued from the build config are now executed rather than asserted:
+      the bundle contains no `node:` import; the only `process` reference is `globalThis.process`,
+      so no bundler `define` can inline a key; a missing key in a browser raises
+      `ConfigurationError` rather than `ReferenceError: process is not defined`; and the
+      cross-origin request succeeds, which is the failure issue #4 reported against the old backend
+      in 2017 (`api.morphemeris.com` returns `Access-Control-Allow-Origin: *` and permits the
+      `Authorization` header). The suite gates on `MORPHEMERIS_API_KEY` like the other live tests,
+      so it no-ops in CI, and it was falsified before being trusted: with a deliberately invalid key
+      the browser receives a real 401 and the suite fails, which is what rules out a test that
+      passes without doing anything.
 - [x] The four open issues (#3, #4, #5, #7) each receive an individual reply and are closed —
       answered and closed 2026-08-15. Scope grew: all **seven** open issues were answered, not four.
       #1 (2016 packaging, then the backend failure in a 2017 follow-up), #2 (React Native), and #6
