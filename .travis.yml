@@ -1,9 +1,0 @@
-language: node_js
-node_js:
-  - '6'
-before_install:
-  - npm install -g typescript istanbul jasmine-core coveralls
-script:
-  - npm test
-after_script:
-  - cat ./coverage/coverage-remapped.lcov | coveralls

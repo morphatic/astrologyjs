@@ -1,0 +1,56 @@
+name: CI (legacy 1.x)
+
+# ─────────────────────────────────────────────────────────────────────
+# CI for the frozen 1.x branch. Deliberately much smaller than main's:
+# this branch is one source file, one build, and two test files, and it
+# is never going to grow. Path filtering, matrices and scheduled runs
+# would all be machinery guarding nothing.
+#
+# `main` has its own ci.yml which only triggers on PRs into main and
+# develop, so it never sees this branch and this never sees it.
+# ─────────────────────────────────────────────────────────────────────
+
+on:
+  pull_request:
+    branches: [legacy/1.x]
+  push:
+    branches: [legacy/1.x]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-legacy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, build, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pinned: the action has no default, and with no `packageManager` field
+      # in package.json it fails with "No pnpm version is specified" before it
+      # installs anything. This cost a failed publish run on main once already.
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      # `pnpm test` builds first, so the dist assertions in test/dist.test.ts
+      # always run against fresh artifacts rather than a stale committed copy.
+      - run: pnpm test
+
+      - name: Show what would be published
+        run: npm pack --dry-run
