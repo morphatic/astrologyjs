@@ -159,15 +159,26 @@ export async function serverComposite(
     lat_b: String(b.lat),
     lon_b: String(b.lng),
     bodies: PLANETS.join(','),
-    // Matches `longitudeMidpoint`, which takes the shorter arc (§7.1).
-    resolution: 'nearest',
+    // Composite midpoints are always the shorter arc; `resolution` only breaks
+    // the exact-180° tie. `lower` picks the candidate at the lower longitude,
+    // which is the ascending arc from the lower longitude that
+    // `longitudeMidpoint` resolves to (§7.1). Before morphemeris#105 this
+    // parameter was spelled `nearest`, which is now rejected.
+    resolution: 'lower',
   });
+}
+
+/** Where and when the server cast its Davison chart. */
+export interface DavisonMetadata {
+  /** The instant, rendered back to UTC from the mean of the two UT1 Julian Days. */
+  readonly datetime_iso: string;
+  readonly location: { readonly latitude: number; readonly longitude: number };
 }
 
 export async function serverDavison(
   a: { instant: string; lat: number; lng: number },
   b: { instant: string; lat: number; lng: number },
-): Promise<{ positions: ChartPosition[] }> {
+): Promise<{ positions: ChartPosition[]; metadata: DavisonMetadata }> {
   return get('/v1/davison', {
     datetime_a: a.instant,
     lat_a: String(a.lat),

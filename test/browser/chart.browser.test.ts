@@ -24,7 +24,8 @@ import { createPerson } from '../../src/person.js';
  * API. Then it casts the same chart under Node and requires the two to agree,
  * because "it ran" is a much weaker claim than "it produced the same numbers".
  *
- * Gated on `MORPHEMERIS_API_KEY` like the other live tests, so it no-ops in CI.
+ * Gated on `MORPHEMERIS_API_KEY` like the other live tests, so it no-ops in PR
+ * CI and runs in the weekly `live.yml` workflow.
  * The key is passed into the page as a call argument and never written to disk
  * or into the served bundle.
  */

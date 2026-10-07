@@ -86,6 +86,20 @@ jobs:
               - 'packages/**'
               - 'features/**'
               - 'tests/**'
+              # This repo's suites live in test/ (singular). The scaffold's
+              # tests/** never matched it, so test-only PRs skipped the
+              # test job until 2026-10-06.
+              - 'test/**'
+              # Config the test job's steps read: a change to any of
+              # these can turn typecheck, lint, format, or a suite red.
+              - 'vitest.config.ts'
+              - 'cucumber.json'
+              - 'tsconfig.json'
+              - 'tsconfig.build.json'
+              - 'tsup.config.ts'
+              - 'eslint.config.js'
+              - '.prettierrc.json'
+              - '.prettierignore'
               - 'package.json'
               - 'pnpm-lock.yaml'
               - 'pnpm-workspace.yaml'

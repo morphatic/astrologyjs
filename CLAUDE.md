@@ -291,7 +291,11 @@ between them requires `pnpm install`.
 - Low-stakes transitive dependency swaps with no behavior change are fine — but say so in the PR for
   auditability.
 - **Never commit a Morphemeris API key.** Tests that hit the live API read
-  `MORPHEMERIS_API_KEY` from the environment and skip cleanly when it is absent.
+  `MORPHEMERIS_API_KEY` from the environment and skip cleanly when it is absent. Locally the key is
+  in the gitignored `.env.local`. In CI it is the `MORPHEMERIS_API_KEY` repository secret, read only
+  by the weekly `.github/workflows/live.yml` and never on pull requests. A red `Live API` run
+  usually means Morphemeris changed, not the library: diff the server's response before touching
+  code.
 
 ## Testing discipline
 

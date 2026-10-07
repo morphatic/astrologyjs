@@ -1,0 +1,52 @@
+name: Live API
+
+# The live suites (test/live, test/browser) cross-check the library against
+# the real Morphemeris API. They never run on pull requests (spec §13.1):
+# they spend credits and depend on a service this repo does not control, so
+# they must not gate a merge. But server-side changes arrive on Morphemeris's
+# calendar, not this repo's, and when these suites only ran on a laptop two
+# of them sat red for five weeks before anyone noticed. So they run weekly
+# against main, and a failure emails the repo owner through GitHub's default
+# workflow-failure notification, as audit.yml's daily run does.
+#
+# workflow_dispatch is for ad-hoc runs from the Actions tab.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Wednesdays 06:00 UTC, clear of audit.yml (daily 05:00) and ci.yml's
+    # weekly full matrix (Mondays 05:30).
+    - cron: '0 6 * * 3'
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: live API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MORPHEMERIS_API_KEY: ${{ secrets.MORPHEMERIS_API_KEY }}
+    steps:
+      # The suites gate themselves on the key and no-op without it. Locally
+      # that is right; here it would turn a missing secret into a green run
+      # that checked nothing.
+      - name: Require the API key
+        run: |
+          if [ -z "$MORPHEMERIS_API_KEY" ]; then
+            echo "::error::MORPHEMERIS_API_KEY secret is not set; the live suites would silently skip."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with: { version: 10 }
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm vitest run test/live test/browser
