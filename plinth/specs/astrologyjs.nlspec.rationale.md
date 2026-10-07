@@ -253,6 +253,14 @@ The Moon is the fastest-moving body at roughly 13° per day, or 0.009° per minu
 
 Rounding is also not silent, which was the real objection: `transitGranularitySec` is a documented option and `0` disables it. And it makes the deduplication cache work for the one case that motivated caching in the first place, which the millisecond default defeated entirely.
 
+### Why the Davison midpoint is taken in UTC, when the server takes it in UT1
+
+Until late August 2026, Morphemeris treated an incoming UTC timestamp as UT1, so both sides averaged the same numbers and the live cross-check agreed to 1e-6°. An audit of its ephemeris engine then brought UTC conversion in line with the Swiss Ephemeris's `swe_utc_to_jd`: UTC is now carried through the leap-second table to TT and back through the ΔT model to UT1. `/v1/davison` averages those UT1 Julian Days, per its own spec (§4.18). For the cross-check pair the two births sit 18 ms and 327 ms off their UTC clock times, so the server's midpoint lands 90 ms before the library's.
+
+Matching the server would mean shipping a ΔT model and a leap-second table in a library whose principle is small and isomorphic (§1), and the leap-second table goes stale. The difference is under a second, and at most about 1.5e-4° on the Moon, which is below anything a chart displays. The library keeps the clock-time midpoint, which is what Davison-from-civil-time software computes, and §7.1 names it.
+
+What must not happen is for the convention gap to hide a geometry bug, so the cross-check does not just widen its tolerance. It checks the instant against the 1 s bound, the place exactly, and the chart exactly at the instant the server reports it used.
+
 ### Why the versioning policy is stated explicitly
 
 The audit flagged that [§1.2](./astrologyjs.nlspec.md#12-design-principles) asserts additive evolution while nothing said what "breaking" means for this library. That matters more here than for most packages, because the very next question after 2.0.0 ships is what 2.1 may safely add — and the answer is non-obvious for a library whose output is numbers.

@@ -7,6 +7,7 @@ export default defineConfig({
     setupFiles: ['test/setup/load-env.ts'],
     // Live tests self-gate on MORPHEMERIS_API_KEY via `describe.runIf(...)`
     // rather than a skip marker — see plinth/specs/astrologyjs.nlspec.md §13.1.
-    // They no-op in CI, where no secret is configured.
+    // They no-op in PR CI, where no key is exposed, and run weekly in
+    // .github/workflows/live.yml, which supplies one.
   },
 });
