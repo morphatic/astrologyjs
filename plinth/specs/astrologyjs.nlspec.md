@@ -643,7 +643,7 @@ FUNCTION outOfBounds(declination, obliquity) -> Boolean:
 | `CombinedTransits` | p1, p2, now@p1 | 3 | transits |
 | `DavisonTransits` | midpoint, now@midpoint | 2 | transits |
 
-Combined charts take the shorter-arc midpoint of each body's longitude, the arithmetic mean of latitude and speed, and the shorter-arc midpoint of each house cusp and angle. Davison charts request a single chart for the temporal midpoint at the geographic midpoint of the two people.
+Combined charts take the shorter-arc midpoint of each body's longitude, the arithmetic mean of latitude and speed, and the shorter-arc midpoint of each house cusp and angle. Davison charts request a single chart for the temporal midpoint at the geographic midpoint of the two people. The temporal midpoint is the mean of the two **UTC** instants. Morphemeris's own `/v1/davison` averages the two UT1 Julian Days instead, so the two instants can differ by up to the change in UT1 − UTC between the births, which is under 0.9 s. That moves the Moon by at most about 1.5e-4°, and it is a difference in convention, not an error on either side.
 
 ```pseudo
 -- Behavior:
@@ -962,7 +962,7 @@ Credits, not milliseconds, are this library's scarce resource. Latency is domina
 - **Unit tests** cover the domain model — aspects, midpoints, sign assignment, derivation — with no network access.
 - **Adapter tests** run against recorded Morphemeris responses covering the real wire format, including the high-latitude warning case and a sidereal response.
 - **Time resolution tests** are the largest suite, matching the risk in §5.
-- **Live API tests** read `MORPHEMERIS_API_KEY` from the environment and skip cleanly when it is absent. They never run in CI on pull requests.
+- **Live API tests** read `MORPHEMERIS_API_KEY` from the environment and skip cleanly when it is absent. They never run in CI on pull requests. They run weekly against `main` in `.github/workflows/live.yml`, using the `MORPHEMERIS_API_KEY` repository secret, so a change on the server side surfaces within a week rather than whenever someone next runs the suite locally.
 - A test asserts that no error thrown by any code path contains a configured key.
 
 The 1.x specs in `src/*.spec.ts` are ported **critically**: each assertion is evaluated against correct behavior before being carried over. An assertion encoding 1.x behavior that contradicts this spec is discarded and the discrepancy noted.

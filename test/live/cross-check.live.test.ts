@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { separation } from '../../src/aspects.js';
 import { ChartType, createChart, type Chart } from '../../src/chart.js';
 import { configure, resetConfig } from '../../src/config.js';
+import { geoMidpoint, instantMidpoint } from '../../src/midpoints.js';
 import { createPerson, type Person } from '../../src/person.js';
 import {
   MAJOR_NAMES,
@@ -190,26 +191,55 @@ live('cross-checked against Morphemeris server-side computation', () => {
     }
   });
 
-  it('computes the same Davison chart the server does', async () => {
-    const [chart, server] = await Promise.all([
-      createChart('davison', personA, {
-        type: ChartType.Davison,
-        p2: personB,
-        bodies: [...PLANETS],
-      }),
-      serverDavison(A, B),
-    ]);
+  describe('the Davison chart', () => {
+    // The two sides take the temporal midpoint in different time scales, by
+    // design (§7.1): the library averages the two UTC instants, the server
+    // averages the two UT1 Julian Days. UT1 − UTC is under 0.9 s at any date
+    // with a leap-second table, so the two midpoints can differ by up to that
+    // much — 90 ms for this pair, which moves the Moon 1.5e-5°. Comparing the
+    // two charts at 1e-6° would therefore test the convention, not the code.
+    //
+    // So the comparison is split. The instant is checked against the
+    // convention's bound, the place exactly, and the chart geometry exactly at
+    // the instant the server actually used.
 
-    const mine = new Map(chart.planets.map((p) => [p.name, p]));
+    let server: Awaited<ReturnType<typeof serverDavison>>;
 
-    for (const position of server.positions) {
-      const ours = mine.get(position.body);
-      expect(ours, position.body).toBeDefined();
-      if (ours === undefined) continue;
-      // A Davison chart is cast at the time-space midpoint, so agreement here
-      // tests `instantMidpoint` and `geoMidpoint` together: disagree on either
-      // and the fast bodies move visibly.
-      expect(Math.abs(ours.longitude - position.longitude), position.body).toBeLessThan(1e-6);
-    }
+    beforeAll(async () => {
+      server = await serverDavison(A, B);
+    });
+
+    it('takes its instant within a second of the server’s', () => {
+      const ours = Date.parse(instantMidpoint(A.instant, B.instant));
+      expect(Math.abs(ours - Date.parse(server.metadata.datetime_iso))).toBeLessThan(1000);
+    });
+
+    it('takes the same place the server does', () => {
+      const ours = geoMidpoint({ lat: A.lat, lng: A.lng }, { lat: B.lat, lng: B.lng });
+      expect(Math.abs(ours.lat - server.metadata.location.latitude)).toBeLessThan(1e-9);
+      expect(Math.abs(ours.lng - server.metadata.location.longitude)).toBeLessThan(1e-9);
+    });
+
+    it('casts the same chart the server does at the server’s instant', async () => {
+      const { datetime_iso: instant, location } = server.metadata;
+      const midpoint = await createPerson(
+        'davison',
+        { utc: instant },
+        { lat: location.latitude, lng: location.longitude },
+      );
+      const chart = await createChart('davison', midpoint, { bodies: [...PLANETS] });
+
+      const mine = new Map(chart.planets.map((p) => [p.name, p]));
+      expect(server.positions.length).toBe(PLANET_NAMES.length);
+
+      for (const position of server.positions) {
+        const ours = mine.get(position.body);
+        expect(ours, position.body).toBeDefined();
+        if (ours === undefined) continue;
+        // `datetime_iso` is rounded to the millisecond, which moves the Moon
+        // at most 1e-7° — well inside the tolerance.
+        expect(Math.abs(ours.longitude - position.longitude), position.body).toBeLessThan(1e-6);
+      }
+    });
   });
 });

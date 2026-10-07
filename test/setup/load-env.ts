@@ -4,8 +4,9 @@ import { existsSync, readFileSync } from 'node:fs';
  * Loads `.env.local` into `process.env` for local runs.
  *
  * Only `MORPHEMERIS_API_KEY` matters, and only to the live-API suite, which
- * gates itself on the variable's presence. CI has no `.env.local` and no
- * secret, so the live suite no-ops there — that is intended, not a gap.
+ * gates itself on the variable's presence. PR CI has no `.env.local` and no
+ * key, so the live suite no-ops there — that is intended, not a gap. The
+ * weekly `live.yml` workflow supplies the key from a repository secret.
  *
  * Existing environment variables win, so an explicitly exported key overrides
  * the file.
