@@ -222,6 +222,24 @@ Two consequences worth knowing before you fight them:
 - Merge commits are no longer possible, so a PR title's `feat!` now always reaches `main`. The
   failure that produced 1.4.0 cannot recur through that route.
 
+### Which Dependabot PRs merge themselves
+
+Only **patch-only** updates. That is Morgan's policy: patch bumps may auto-merge once
+`CI (required check)` passes; minor and major bumps wait for his review. A grouped PR's update type
+is its highest bump, so the monthly `npm-minor-and-patch` group almost always contains a minor and
+waits for review. That is intended. In that case the `auto-merge` check shows green because its
+enable step was skipped. A green check does not mean auto-merge was queued.
+
+Two things it depends on, both added to `setup-github.sh` and applied to the live repo on
+2026-10-06 after #32 sat open: the repo's **Allow auto-merge** setting (without it every patch PR's
+workflow fails with `Auto merge is not allowed for this repository`), and the `dependencies`/`npm`/
+`github-actions` labels (Dependabot silently skips a label that does not exist).
+
+The `audit` job is part of the required check, and advisories arrive on calendar time. A new
+high-severity advisory in any dev dependency turns the daily scheduled audit on `main` red **and**
+blocks every PR, Dependabot's included, until the lockfile is refreshed. When a Dependabot PR is
+stuck, check the scheduled `audit` runs first.
+
 ### The `legacy/1.x` branch, and the second `publish.yml`
 
 `legacy/1.x` is a frozen branch off `v1.3.1` carrying `astrologyjs@1.3.2`, a tombstone whose only

@@ -5,8 +5,9 @@
 # Run this ONCE, after `gh repo create` (or the first push that creates the remote).
 #
 # What it does:
-#   - Sets merge strategy: squash-only, auto-delete head branches
-#   - Creates the standard label set (priority:*, NOT4AI)
+#   - Sets merge strategy: squash-only, auto-delete head branches, allow auto-merge
+#   - Creates the standard label set (priority:*, NOT4AI) and the labels
+#     .github/dependabot.yml applies
 #   - For two-tier repos: sets default branch to develop, protects main + develop
 #   - For trunk-only repos (--trunk-only): protects main only
 #   - Branch protection requires:
@@ -63,11 +64,15 @@ OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 echo "Configuring $OWNER_REPO ..."
 echo ""
 
-echo "→ Setting merge strategy: squash-only, auto-delete head branches ..."
+echo "→ Setting merge strategy: squash-only, auto-delete head branches, allow auto-merge ..."
+# --enable-auto-merge lets .github/workflows/dependabot-auto-merge.yml queue
+# patch-level Dependabot PRs; GitHub still holds each merge until every
+# required check passes. Without it that workflow fails on every patch PR.
 gh repo edit "$OWNER_REPO" \
   --enable-squash-merge \
   --enable-merge-commit=false \
   --enable-rebase-merge=false \
+  --enable-auto-merge \
   --delete-branch-on-merge
 
 echo "→ Creating standard labels ..."
@@ -84,6 +89,12 @@ create_label "priority:high"     "d93f0b" "Next up"
 create_label "priority:medium"   "fbca04" "Soon"
 create_label "priority:low"      "c2e0c6" "Eventually"
 create_label "NOT4AI"            "5319e7" "Human-only: do not assign to or pick up with an AI agent"
+
+# The labels .github/dependabot.yml applies. Dependabot silently skips a
+# label that doesn't exist, so these must exist before its first run.
+create_label "dependencies"      "0366d6" "Dependency updates"
+create_label "npm"               "cb3837" "npm / pnpm dependencies"
+create_label "github-actions"    "2088ff" "GitHub Actions workflow dependencies"
 
 # branch_exists: returns 0 if the named branch exists on the remote.
 branch_exists() {
